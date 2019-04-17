@@ -18,11 +18,11 @@ node {
     // Neuvector scan stages start here
     // eventually
     
-    /* stage('Scan image') {
-    neuvector nameOfVulnerabilityToFailFour: '', nameOfVulnerabilityToFailOne: '', nameOfVulnerabilityToFailThree: '', nameOfVulnerabilityToFailTwo: '', numberOfHighSeverityToFail: '1', numberOfMediumSeverityToFail: '5', registrySelection: 'Local', repository: 'alpine'
+    stage('Scan image') {
+    neuvector nameOfVulnerabilityToFailFour: '', nameOfVulnerabilityToFailOne: '', nameOfVulnerabilityToFailThree: '', nameOfVulnerabilityToFailTwo: '', numberOfHighSeverityToFail: '1', numberOfMediumSeverityToFail: '5', registrySelection: 'Local', repository: 'mraufer/hellonode'
     } 
     
-    end Neuvector */
+    // end Neuvector
 
     /* Twistlock scan stages start here
     stage ('scan') {
