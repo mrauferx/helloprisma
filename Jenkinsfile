@@ -9,11 +9,11 @@ node {
         app = docker.build("mraufer/hellonode")
     }
 
-    stage ('Test image') {
+    /* stage ('Test image') {
         app.inside {
           sh 'echo "Tests passed"'
         }
-    }
+    } */
 
     // Neuvector scan stages start here
     // eventually
