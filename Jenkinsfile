@@ -9,17 +9,17 @@ node {
         app = docker.build("mraufer/hellonode")
     }
 
-    /* stage ('Test image') {
+    stage ('Test image') {
         app.inside {
           sh 'echo "Tests passed"'
         }
-    } */
+    }
 
     // Neuvector scan stages start here
     // eventually
     
     stage('Scan image') {
-    neuvector nameOfVulnerabilityToFailFour: '', nameOfVulnerabilityToFailOne: '', nameOfVulnerabilityToFailThree: '', nameOfVulnerabilityToFailTwo: '', numberOfHighSeverityToFail: '1', numberOfMediumSeverityToFail: '5', registrySelection: 'Local', repository: 'mraufer/hellonode'
+    neuvector nameOfVulnerabilityToFailFour: '', nameOfVulnerabilityToFailOne: '', nameOfVulnerabilityToFailThree: '', nameOfVulnerabilityToFailTwo: '', numberOfHighSeverityToFail: '1', numberOfMediumSeverityToFail: '5', registrySelection: 'Local', repository: 'mraufer/hellonode:latest'
     } 
     
     // end Neuvector
