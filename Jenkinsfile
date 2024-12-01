@@ -5,8 +5,8 @@ node {
         checkout scm
     }
 
+    //    app = docker.build("mraufer/hellonode")
     stage('Build image') {
-    #    app = docker.build("mraufer/hellonode")
         app = docker.build("harbor.localdomain/mytest/hellonode")
     }
 
@@ -43,9 +43,9 @@ node {
         twistlockPublish ca: '', cert: '', dockerAddress: 'unix:///var/run/docker.sock', image: 'mraufer/hellonode:latest', key: '', logLevel: 'true', timeout: 10
     }
     end Twistlock */
-    
+
+    //    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
     stage('Push image') {
-    #    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
         docker.withRegistry('https://harbor.localdomain', 'harbor-credentials') {
             app.push("${env.BUILD_NUMBER}")
             app.push("latest")
