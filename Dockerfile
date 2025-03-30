@@ -1,6 +1,6 @@
 # use a node base image
-# FROM alpine:latest
-FROM openjdk:8u151-jre-alpine
+FROM alpine:latest
+# FROM openjdk:8u151-jre-alpine
 
 # set maintainer
 LABEL maintainer "mraufer"
