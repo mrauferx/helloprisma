@@ -53,6 +53,7 @@ node {
     }
     
     stage('Deploy to Kubernetes') {
-        kubernetesDeploy(configs: "hellonode.yaml")
+        kubernetesDeploy(configs: 'hellonode.yaml', kubeconfigId: 'mwm-k3s')
+    //    sh 'kubectl create -f hellonode.yaml'
     }
 }
