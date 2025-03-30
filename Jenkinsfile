@@ -5,7 +5,7 @@ node {
         checkout scm
     }
 
-    //    app = docker.build("mraufer/hellonode")
+    //    app = docker.build("mrauferx/hellonode")
     stage('Build image') {
         app = docker.build("harbor.localdomain/mytest/hellonode")
     }
