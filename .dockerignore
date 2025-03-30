@@ -1,0 +1,9 @@
+build.txt
+Dockerfile.bad
+Dockerfile.good
+hellonode.yaml
+Jenkinsfile
+Jenkinsfile.org
+README.md
+.sonarcloud.properties
+.git

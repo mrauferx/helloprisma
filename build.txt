@@ -1,0 +1,17 @@
+hellonode
+multi-stage build:
+docker build . -t test:app2
+test in 2 terminals:
+docker run -it --name hellonode -p 8000:8000 test:app2
+curl http://localhost:8000
+docker container stop
+docker container ps -a
+docker container rm
+troubleshoot:
+docker run -it --name hellonode --entrypoint=/bin/sh test:app2
+test:
+docker run -d --name hellonode -p 8000:8000 test:app2
+docker ps -a 
+docker logs <container>
+curl http://localhost:8000
+

@@ -60,7 +60,8 @@ node {
     //        sh 'cat $KUBECRED > ~/.kube/config'
             sh 'curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"'
             sh 'chmod +x ./kubectl'
-            sh './kubectl create -f $WORKSPACE/hellonode.yaml --validate=false'
+    //        sh './kubectl create -f $WORKSPACE/hellonode.yaml --validate=false'
+            sh './kubectl create -f $WORKSPACE/hellonode.yaml'
         }
     }
 }

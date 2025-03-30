@@ -1,11 +1,15 @@
-#namespace ...
-#
-#---
-#
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test
+
+---
+
 apiVersion: v1
 kind: Secret
 metadata:
   name: harborsecret
+  namespace: test
 data:
   .dockerconfigjson: eyJhdXRocyI6eyJodHRwczovL2hhcmJvci5sb2NhbGRvbWFpbiI6eyJ1c2VybmFtZSI6ImFkbWluIiwicGFzc3dvcmQiOiJIYXJib3IxMjM0NSIsImF1dGgiOiJZV1J0YVc0NlNHRnlZbTl5TVRJek5EVT0ifX19
 type: kubernetes.io/dockerconfigjson
@@ -16,6 +20,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hellonode
+  namespace: test
   labels:
     app: hellonode
 spec:
@@ -42,6 +47,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: hellonode
+  namespace: test
 spec:
   selector:
     app: hellonode
