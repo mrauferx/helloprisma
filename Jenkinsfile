@@ -54,7 +54,10 @@ node {
     
     stage('Deploy to Kubernetes') {
     //    kubernetesDeploy(configs: 'hellonode.yaml', kubeconfigId: 'mwm-k3s')
-        kubeconfig(credentialsId: 'mwm-k3s', serverUrl: 'https://192.168.30.10:6443') {
+        withKubeConfig([credentialsId: 'mwm-k3s', serverUrl: 'https://192.168.30.10:6443']) {
+    //    kubeconfig(credentialsId: 'mwm-k3s', serverUrl: 'https://192.168.30.10:6443') {
+    //    withCredentials([file(credentialsId: 'mwm-k3s', variable: 'KUBECRED')]) {
+    //        sh 'cat $KUBECRED > ~/.kube/config'
             sh 'curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"'
             sh 'chmod +x ./kubectl'
             sh './kubectl create -f hellonode.yaml'
