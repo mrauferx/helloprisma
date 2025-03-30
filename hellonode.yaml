@@ -1,0 +1,52 @@
+#namespace ...
+#
+#---
+#
+apiVersion: v1
+kind: Secret
+metadata:
+  name: harborsecret
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJodHRwczovL2hhcmJvci5sb2NhbGRvbWFpbiI6eyJ1c2VybmFtZSI6ImFkbWluIiwicGFzc3dvcmQiOiJIYXJib3IxMjM0NSIsImF1dGgiOiJZV1J0YVc0NlNHRnlZbTl5TVRJek5EVT0ifX19
+type: kubernetes.io/dockerconfigjson
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hellonode
+  labels:
+    app: hellonode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hellonode
+  template:
+    metadata:
+      labels:
+        app: hellonode
+    spec:
+      imagePullSecrets:
+        - name: harborsecret
+      containers:
+      - name: hellonode
+        image: harbor.localdomain/mytest/hellonode:latest 
+        ports:
+        - containerPort: 8000
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hellonode
+spec:
+  selector:
+    app: hellonode
+  type: LoadBalancer 
+  ports:
+  - protocol: TCP
+    port: 8000 #Service port
+    targetPort: 8000 #The port for the hellonode application container
