@@ -17,7 +17,6 @@ node {
     }
 
     // Aqua scan stages start here
-    // eventually
 
     stage('Scan image') {
         aqua locationType: 'local', localImage: 'harbor.localdomain/mytest/hellonode:latest', hideBase: false, notCompliesCmd: '', onDisallowed: 'fail', showNegligible: false
@@ -51,5 +50,9 @@ node {
             app.push("${env.BUILD_NUMBER}")
             app.push("latest")
         }
+    }
+    
+    stage('Deploy to Kubernetes') {
+        kubernetesDeploy(configs: "hellonode.yaml")
     }
 }
