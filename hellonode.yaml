@@ -37,9 +37,21 @@ spec:
         - name: harborsecret
       containers:
       - name: hellonode
-        image: harbor.localdomain/mytest/hellonode:latest 
+        image: harbor.localdomain/mytest/hellonode:latest
+        securityContext:
+          runAsUser: 1001
+          runAsGroup: 1001
+          privileged: false
+          allowPrivilegeEscalation: false
         ports:
         - containerPort: 8000
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "0.2"
+          limits:
+            memory: "256Mi"
+            cpu: "0.5"
 
 ---
 
