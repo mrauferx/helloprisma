@@ -1,7 +1,7 @@
 ####### This is a multi-stage build ######
 ####### Below is for building app ########
 # switch node base image for good / bad build - newer = good
-FROM node:19.0.0-alpine3.16 as installer
+FROM node:18.0.0-alpine3.16 as installer
 #FROM node:23.10.0-alpine3.21 as installer
 
 # copy application into container
@@ -19,7 +19,7 @@ RUN npm install --omit=dev --unsafe-perm && \
 
 ####### Below is for building image ########
 # switch node base image for good / bad build - newer = good
-FROM node:19.0.0-alpine3.16
+FROM node:18.0.0-alpine3.16
 #FROM node:23.10.0-alpine3.21
 
 # Arguments for use in image build
