@@ -26,8 +26,7 @@ node {
     // end Aqua
     
     /* Neuvector scan stages start here
-    
-    
+        
     stage('Scan image') {
     neuvector nameOfVulnerabilityToFailFour: '', nameOfVulnerabilityToFailOne: '', nameOfVulnerabilityToFailThree: '', nameOfVulnerabilityToFailTwo: '', numberOfHighSeverityToFail: '1', numberOfMediumSeverityToFail: '5', registrySelection: 'Local', repository: 'mraufer/hellonode:latest'
     } 
@@ -44,8 +43,46 @@ node {
     }
     end Twistlock */
 
-    //    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+    // Aqua scan stages start here
+        
+    stage('Manifest Generation') {
+        withCredentials([
+        // Replace GITHUB_APP_CREDENTIALS_ID with the id of your github app credentials
+            usernamePassword(credentialsId: 'mygithub', usernameVariable: 'GITHUB_APP', passwordVariable: 'GITHUB_TOKEN'), 
+            string(credentialsId: 'AQUA_KEY', variable: 'AQUA_KEY'), 
+            string(credentialsId: 'AQUA_SECRET', variable: 'AQUA_SECRET')
+        ]) {
+        // Replace ARTIFACT_PATH with the path to the root folder of your project 
+        // or with the name:tag the newly built image
+            sh '''
+                export BILLY_SERVER=https://billy.eu-1.codesec.aquasec.com
+                curl -sLo install.sh download.codesec.aquasec.com/billy/install.sh
+                curl -sLo install.sh.checksum https://github.com/argonsecurity/releases/releases/latest/download/install.sh.checksum
+                if ! cat install.sh.checksum | sha256sum --check; then
+                    echo "install.sh checksum failed"
+                    exit 1
+                fi
+                BINDIR="." sh install.sh
+                rm install.sh install.sh.checksum
+                ./billy generate \
+                    --access-token ${GITHUB_TOKEN} \
+                    --aqua-key ${AQUA_KEY} \
+                    --aqua-secret ${AQUA_SECRET} \
+                    --cspm-url https://eu-1.api.cloudsploit.com \
+                    --artifact-path "harbor.localdomain/mytest/hellonode:latest" 
+
+                # The docker image name:tag of the newly built image
+                # --artifact-path "my-image-name:my-image-tag" \
+                # OR the path to the root folder of your project. I.e my-repo/my-app 
+                # --artifact-path "ARTIFACT_PATH"
+            '''
+        }
+    }    
+
+    // end Aqua
+        
     stage('Push image') {
+    //    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
         docker.withRegistry('https://harbor.localdomain', 'harbor-credentials') {
             app.push("${env.BUILD_NUMBER}")
             app.push("latest")
