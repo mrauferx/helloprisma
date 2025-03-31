@@ -13,7 +13,7 @@ node {
                 image 'aquasec/aqua-scanner'
             }
         }
-        steps {
+        step {
             withCredentials([
                 string(credentialsId: 'AQUA_KEY', variable: 'AQUA_KEY'),
                 string(credentialsId: 'AQUA_SECRET', variable: 'AQUA_SECRET'),
