@@ -8,12 +8,7 @@ node {
     // Aqua scan stages start here
     // using trivy script:
     stage('Scan Code') {
-        agent {
-            docker {
-                image 'aquasec/aqua-scanner'
-            }
-        }
-        step {
+        withDockerContainer(image: 'aquasec/aqua-scanner'){
             withCredentials([
                 string(credentialsId: 'AQUA_KEY', variable: 'AQUA_KEY'),
                 string(credentialsId: 'AQUA_SECRET', variable: 'AQUA_SECRET'),
