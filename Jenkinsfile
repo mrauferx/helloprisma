@@ -19,7 +19,7 @@ node {
                     export TRIVY_RUN_AS_PLUGIN=aqua
                     export AQUA_URL=https://api.eu-1.supply-chain.cloud.aquasec.com
                     export CSPM_URL=https://eu-1.api.cloudsploit.com
-                    trivy fs --scanners misconfig,vuln,secret,license --sast --reachability --package-json .
+                    trivy fs --scanners misconfig,vuln,secret,license --sast --reachability .
                     # To customize what security issues to detect (vuln,misconfig,secret,license)
                     # To customize which severities to scan for, add the following flag: --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
                     # To enable SAST scanning, add: --sast
