@@ -100,8 +100,8 @@ node {
                     --aqua-key ${AQUA_KEY} \
                     --aqua-secret ${AQUA_SECRET} \
                     --cspm-url https://eu-1.api.cloudsploit.com \
-                    --artifact-path "harbor.localdomain/mytest/hellonode:latest" 
-                    --artifact-path "harbor.localdomain/mytest/hellonode:${env.BUILD_NUMBER}"
+                    --artifact-path "harbor.localdomain/mytest/hellonode:$BUILD_NUMBER"
+                #    --artifact-path "harbor.localdomain/mytest/hellonode:latest" \
 
                 # The docker image name:tag of the newly built image
                 # --artifact-path "my-image-name:my-image-tag" \
