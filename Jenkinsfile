@@ -43,6 +43,14 @@ node {
     }
     end Twistlock */
 
+    stage('Push image') {
+    //    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+        docker.withRegistry('https://harbor.localdomain', 'harbor-credentials') {
+            app.push("${env.BUILD_NUMBER}")
+            app.push("latest")
+        }
+    }
+    
     // Aqua scan stages start here
         
     stage('Manifest Generation') {
@@ -69,7 +77,8 @@ node {
                     --aqua-key ${AQUA_KEY} \
                     --aqua-secret ${AQUA_SECRET} \
                     --cspm-url https://eu-1.api.cloudsploit.com \
-                    --artifact-path "harbor.localdomain/mytest/hellonode:latest" 
+                    # --artifact-path "harbor.localdomain/mytest/hellonode:latest" 
+                    --artifact-path "harbor.localdomain/mytest/hellonode:${env.BUILD_NUMBER}"
 
                 # The docker image name:tag of the newly built image
                 # --artifact-path "my-image-name:my-image-tag" \
@@ -81,14 +90,6 @@ node {
 
     // end Aqua
         
-    stage('Push image') {
-    //    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-        docker.withRegistry('https://harbor.localdomain', 'harbor-credentials') {
-            app.push("${env.BUILD_NUMBER}")
-            app.push("latest")
-        }
-    }
-    
     stage('Deploy to Kubernetes') {
     //    kubernetesDeploy(configs: 'hellonode.yaml', kubeconfigId: 'mwm-k3s')
         withKubeConfig([credentialsId: 'default', serverUrl: 'https://192.168.30.10:6443']) {
