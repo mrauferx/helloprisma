@@ -124,10 +124,11 @@ node {
     //        sh './kubectl create -f $WORKSPACE/hellonode.yaml'
     //    withCredentials([file(credentialsId: 'mwm-k3s', variable: 'KUBECRED')]) {
             withCredentials([
-                usernamePassword(credentialsId: 'harbor-credentials', usernameVariable: 'REG_USER', passwordVariable: 'REG_PW')
+                usernamePassword(credentialsId: 'harbor-credentials', usernameVariable: 'REG_USER', passwordVariable: 'REG_PW'),
+                string(credentialsId: 'root-ca', variable: 'RootCA')
             ]) {
                 sh '''
-                    helm registry login -u ${REG_USER} -p ${REG_PW} harbor.localdomain
+                    helm registry login --ca-file ${RootCA} -u ${REG_USER} -p ${REG_PW} harbor.localdomain
                     helm upgrade --install --create-namespace --namespace hellonode hellonode oci://harbor.localdomain/helm-charts/hellonode --set image.tag=$BUILD_NUMBER,imageCredentials.username=${REG_USER},imageCredentials.password=${REG_PW}
                 '''
             } 
