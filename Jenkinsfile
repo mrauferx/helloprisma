@@ -128,9 +128,7 @@ node {
             ]) {
                 sh '''
                     helm registry login -u ${REG_USER} -p ${REG_PW} harbor.localdomain
-                    helm upgrade --install --create-namespace --namespace hellonode hellonode \
-                        oci://harbor.localdomain/helm-charts/hellonode --set \ 
-                        image.tag=$BUILD_NUMBER,imageCredentials.username=${REG_USER},imageCredentials.password=${REG_PW}
+                    helm upgrade --install --create-namespace --namespace hellonode hellonode oci://harbor.localdomain/helm-charts/hellonode --set image.tag=$BUILD_NUMBER,imageCredentials.username=${REG_USER},imageCredentials.password=${REG_PW}
                 '''
             } 
         }
