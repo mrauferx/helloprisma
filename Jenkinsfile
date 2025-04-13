@@ -125,7 +125,7 @@ node {
     //    withCredentials([file(credentialsId: 'mwm-k3s', variable: 'KUBECRED')]) {
             withCredentials([
                 usernamePassword(credentialsId: 'harbor-credentials', usernameVariable: 'REG_USER', passwordVariable: 'REG_PW')
-            )]) {
+            ]) {
                 sh '''
                     helm registry login -u ${REG_USER} -p ${REG_PW} harbor.localdomain
                     helm upgrade --install --create-namespace --namespace hellonode hellonode \
