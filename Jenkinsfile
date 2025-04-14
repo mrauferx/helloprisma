@@ -5,7 +5,7 @@ node {
         checkout scm
     }
 
-    // taking out stage due to ghcr token expired issue with trivy db ...
+    /* taking out stage due to ghcr token expired issue with trivy db ...
     // Aqua scan stages start here
     // using trivy script:
     stage('Scan Code') {
@@ -20,7 +20,7 @@ node {
                     export TRIVY_RUN_AS_PLUGIN=aqua
                     export AQUA_URL=https://api.eu-1.supply-chain.cloud.aquasec.com
                     export CSPM_URL=https://eu-1.api.cloudsploit.com
-                    docker logout ghcr.io
+                    // docker logout ghcr.io
                     trivy fs --scanners misconfig,vuln,secret,license --sast --reachability .
                     # To customize what security issues to detect (vuln,misconfig,secret,license)
                     # To customize which severities to scan for, add the following flag: --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
@@ -33,7 +33,7 @@ node {
         }
     }
     // end Aqua
-    // end stage take out 
+    end stage take out */
       
     stage('Build Image') {
     //    app = docker.build("mrauferx/hellonode")
@@ -128,8 +128,7 @@ node {
     //    withCredentials([file(credentialsId: 'mwm-k3s', variable: 'KUBECRED')]) {
             withCredentials([
                 usernamePassword(credentialsId: 'harbor-credentials', usernameVariable: 'REG_USER', passwordVariable: 'REG_PW')
-    //            string(credentialsId: 'root-ca', variable: 'RootCA')
-            ]) {
+                ]) {
                 sh '''
                     helm registry login --ca-file RootCA.crt -u ${REG_USER} -p ${REG_PW} harbor.localdomain
                     helm upgrade --ca-file RootCA.crt --install --create-namespace --namespace hellonode hellonode oci://harbor.localdomain/helm-charts/hellonode --set image.tag=$BUILD_NUMBER,imageCredentials.username=${REG_USER},imageCredentials.password=${REG_PW}
