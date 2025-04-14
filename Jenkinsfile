@@ -5,7 +5,7 @@ node {
         checkout scm
     }
 
-    /* taking out stage due to ghcr token expired issue with trivy db ...
+    // taking out stage due to ghcr token expired issue with trivy db ...
     // Aqua scan stages start here
     // using trivy script:
     stage('Scan Code') {
@@ -33,7 +33,7 @@ node {
         }
     }
     // end Aqua
-    end stage take out */
+    // end stage take out 
       
     stage('Build Image') {
     //    app = docker.build("mrauferx/hellonode")
