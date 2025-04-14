@@ -5,6 +5,7 @@ node {
         checkout scm
     }
 
+    /* taking out stage due to ghcr token expired issue with trivy db ...
     // Aqua scan stages start here
     // using trivy script:
     stage('Scan Code') {
@@ -19,6 +20,7 @@ node {
                     export TRIVY_RUN_AS_PLUGIN=aqua
                     export AQUA_URL=https://api.eu-1.supply-chain.cloud.aquasec.com
                     export CSPM_URL=https://eu-1.api.cloudsploit.com
+                    docker logout ghcr.io
                     trivy fs --scanners misconfig,vuln,secret,license --sast --reachability .
                     # To customize what security issues to detect (vuln,misconfig,secret,license)
                     # To customize which severities to scan for, add the following flag: --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
@@ -31,6 +33,7 @@ node {
         }
     }
     // end Aqua
+    end stage take out */
       
     stage('Build Image') {
     //    app = docker.build("mrauferx/hellonode")
