@@ -5,7 +5,8 @@ node {
         checkout scm
     }
 
-    /* taking out stage due to ghcr token expired issue with trivy db ...
+    // not taking out stage due to ghcr token expired issue with trivy db ...
+    // adding credentials to use aqua registry for trivy db download instead of ghcr to avoid reate limit issues ...
     // Aqua scan stages start here
     // using trivy script:
     stage('Scan Code') {
@@ -14,14 +15,14 @@ node {
                 string(credentialsId: 'AQUA_KEY', variable: 'AQUA_KEY'),
                 string(credentialsId: 'AQUA_SECRET', variable: 'AQUA_SECRET'),
         //        string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')
-                usernamePassword(credentialsId: 'mygithub', usernameVariable: 'GITHUB_APP', passwordVariable: 'GITHUB_TOKEN'), 
+                usernamePassword(credentialsId: 'mygithub', usernameVariable: 'GITHUB_APP', passwordVariable: 'GITHUB_TOKEN'),
+                usernamePassword(credentialsId: 'aquareg', usernameVariable: 'TRIVY_USERNAME', passwordVariable: 'TRIVY_PASSWORD')
             ]) {
                 sh '''
                     export TRIVY_RUN_AS_PLUGIN=aqua
                     export AQUA_URL=https://api.eu-1.supply-chain.cloud.aquasec.com
                     export CSPM_URL=https://eu-1.api.cloudsploit.com
-                    // docker logout ghcr.io
-                    trivy fs --scanners misconfig,vuln,secret,license --sast --reachability .
+                    trivy fs --scanners misconfig,vuln,secret,license --sast --reachability --db-repository=registry.aquasec.com/trivy-db:2 --checks-bundle-repository=registry.aquasec.com/trivy-checks:1 --java-db-repository=registry.aquasec.com/trivy-java-db:1 .
                     # To customize what security issues to detect (vuln,misconfig,secret,license)
                     # To customize which severities to scan for, add the following flag: --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
                     # To enable SAST scanning, add: --sast
@@ -33,7 +34,7 @@ node {
         }
     }
     // end Aqua
-    end stage take out */
+    // not end stage take out
       
     stage('Build Image') {
     //    app = docker.build("mrauferx/hellonode")
@@ -71,7 +72,6 @@ node {
     end Twistlock */
 
     stage('Push Image') {
-    //    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
         docker.withRegistry('https://harbor.localdomain', 'harbor-credentials') {
             app.push("${env.BUILD_NUMBER}")
             app.push("latest")
@@ -116,16 +116,7 @@ node {
     // end Aqua
         
     stage('Deploy to Kubernetes') {
-    //    kubernetesDeploy(configs: 'hellonode.yaml', kubeconfigId: 'mwm-k3s')
         withKubeConfig([credentialsId: 'default', serverUrl: 'https://192.168.30.10:6443']) {
-    //    kubeconfig(credentialsId: 'mwm-k3s', serverUrl: 'https://192.168.30.10:6443') {
-    //    withCredentials([file(credentialsId: 'mwm-k3s', variable: 'KUBECRED')]) {
-    //        sh 'cat $KUBECRED > ~/.kube/config'
-    //        sh 'curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"'
-    //        sh 'chmod +x ./kubectl'
-    //        sh './kubectl create -f $WORKSPACE/hellonode.yaml --validate=false'
-    //        sh './kubectl create -f $WORKSPACE/hellonode.yaml'
-    //    withCredentials([file(credentialsId: 'mwm-k3s', variable: 'KUBECRED')]) {
             withCredentials([
                 usernamePassword(credentialsId: 'harbor-credentials', usernameVariable: 'REG_USER', passwordVariable: 'REG_PW')
                 ]) {
