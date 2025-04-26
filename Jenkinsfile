@@ -66,7 +66,7 @@ node {
         prismaCloudScanImage ca: '',
                     cert: '',
                     dockerAddress: 'unix:///var/run/docker.sock',
-                    image: 'harbor.localdomain/mytest/hellonode:$BUILD_NUMBER',
+                    image: 'harbor.localdomain/mytest/hellonode:latest',
                     resultsFile: 'prisma-cloud-scan-results.xml',
                     project: '',
                     ignoreImageBuildTime: true,
@@ -74,24 +74,27 @@ node {
                     logLevel: 'info',
                     podmanPath: '',
                     sbom: 'cyclonedx_json',
-                    compliancePolicy: 'critical',
-                    gracePeriodDays: 0,
-                    policy: 'critical', 
-                    requirePackageUpdate: false, 
+                    // compliancePolicy: 'critical',
+                    // gracePeriodDays: 0,
+                    // policy: 'critical', 
+                    // requirePackageUpdate: false, 
                     timeout: 10
+                    // containerized: true
     }
 
     stage ('Prisma Cloud publish') {
         prismaCloudPublish resultsFilePattern: 'prisma-cloud-scan-results.json'
     }
     // end Prisma
-    
+
+    /*
     stage('Push Image') {
         docker.withRegistry('https://harbor.localdomain', 'harbor-credentials') {
             app.push("${env.BUILD_NUMBER}")
             app.push("latest")
         }
     }
+    */
     
     /* Aqua scan stages start here
     stage('Manifest Generation') {
