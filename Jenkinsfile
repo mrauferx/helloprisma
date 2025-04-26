@@ -43,9 +43,9 @@ node {
         ]) {
             // Use Docker image
             docker.image('bridgecrew/checkov:latest').inside("--entrypoint=''") {
-                // Unstash source code
-                unstash 'source'
-                 // Try block for running Checkov
+                // Unstash source code - why?
+                // unstash 'source'
+                // Try block for running Checkov
                 try {
                     sh '''
                         checkov -d . \
