@@ -5,9 +5,8 @@ node {
         checkout scm
     }
 
-    // not taking out stage due to ghcr token expired issue with trivy db ...
+    /* Aqua scan stages start here
     // adding credentials to use aqua registry for trivy db download instead of ghcr to avoid reate limit issues ...
-    // Aqua scan stages start here
     // using trivy script:
     stage('Scan Code') {
         withDockerContainer(image: 'aquasec/aqua-scanner'){
@@ -33,11 +32,9 @@ node {
             }
         }
     }
-    // end Aqua
-    // not end stage take out
-      
+    end Aqua */
+          
     stage('Build Image') {
-    //    app = docker.build("mrauferx/hellonode")
         app = docker.build("harbor.localdomain/mytest/hellonode")
     }
 
@@ -47,20 +44,12 @@ node {
         }
     }
 
-    // Aqua scan stages start here
-    // using Jenkins plug-in:
+    /* Aqua scan stages start here
     stage('Scan Image') {
         aqua locationType: 'local', localImage: 'harbor.localdomain/mytest/hellonode:latest', hideBase: false, notCompliesCmd: '', onDisallowed: 'fail', showNegligible: false
         }
-    // set onDisallowed: 'ignore' to continue or onDisallowed: 'fail' to honor Aqua Default assurance policy
-    // end Aqua
+    end Aqua */
     
-    /* Neuvector scan stages start here
-    stage('Scan image') {
-    neuvector nameOfVulnerabilityToFailFour: '', nameOfVulnerabilityToFailOne: '', nameOfVulnerabilityToFailThree: '', nameOfVulnerabilityToFailTwo: '', numberOfHighSeverityToFail: '1', numberOfMediumSeverityToFail: '5', registrySelection: 'Local', repository: 'mraufer/hellonode:latest'
-    } 
-    end Neuvector */
-
     /* Twistlock scan stages start here
     stage ('scan') {
         twistlockScan ca: '', cert: '', compliancePolicy: 'critical', dockerAddress: 'unix:///var/run/docker.sock', gracePeriodDays: 0, ignoreImageBuildTime: false, image: 'mraufer/hellonode:latest', key: '', logLevel: 'true', policy: 'critical', requirePackageUpdate: false, timeout: 10
@@ -71,6 +60,32 @@ node {
     }
     end Twistlock */
 
+    // Prisma scan stages start here
+    // using Jenkins plug-in:
+    stage ('Prisma Cloud scan') {
+        prismaCloudScanImage ca: '',
+                    cert: '',
+                    dockerAddress: 'unix:///var/run/docker.sock',
+                    image: 'harbor.localdomain/mytest/hellonode:$BUILD_NUMBER'
+                    resultsFile: 'prisma-cloud-scan-results.xml',
+                    project: '',
+                    ignoreImageBuildTime: true,
+                    key: '',
+                    logLevel: 'info',
+                    podmanPath: '',
+                    sbom: 'cyclonedx_json'
+                    compliancePolicy: 'critical',
+                    gracePeriodDays: 0,
+                    policy: 'critical', 
+                    requirePackageUpdate: false, 
+                    timeout: 10
+    }
+
+    stage ('Prisma Cloud publish') {
+        prismaCloudPublish resultsFilePattern: 'prisma-cloud-scan-results.json'
+    }
+    // end Prisma
+    
     stage('Push Image') {
         docker.withRegistry('https://harbor.localdomain', 'harbor-credentials') {
             app.push("${env.BUILD_NUMBER}")
@@ -78,7 +93,7 @@ node {
         }
     }
     
-    // Aqua scan stages start here
+    /* Aqua scan stages start here
     stage('Manifest Generation') {
         withCredentials([
         // Replace GITHUB_APP_CREDENTIALS_ID with the id of your github app credentials
@@ -113,8 +128,9 @@ node {
             '''
         }
     }    
-    // end Aqua
-        
+    end Aqua */
+
+    /*
     stage('Deploy to Kubernetes') {
         withKubeConfig([credentialsId: 'default', serverUrl: 'https://192.168.30.10:6443']) {
             withCredentials([
@@ -127,4 +143,5 @@ node {
             } 
         }
     }
+    */
 }
