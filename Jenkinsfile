@@ -66,7 +66,7 @@ node {
         prismaCloudScanImage ca: '',
                     cert: '',
                     dockerAddress: 'unix:///var/run/docker.sock',
-                    image: 'harbor.localdomain/mytest/hellonode:$BUILD_NUMBER'
+                    image: 'harbor.localdomain/mytest/hellonode:$BUILD_NUMBER',
                     resultsFile: 'prisma-cloud-scan-results.xml',
                     project: '',
                     ignoreImageBuildTime: true,
