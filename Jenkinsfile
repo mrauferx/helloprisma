@@ -73,7 +73,7 @@ node {
                     key: '',
                     logLevel: 'info',
                     podmanPath: '',
-                    sbom: 'cyclonedx_json'
+                    sbom: 'cyclonedx_json',
                     compliancePolicy: 'critical',
                     gracePeriodDays: 0,
                     policy: 'critical', 
