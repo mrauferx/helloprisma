@@ -48,12 +48,13 @@ node {
                 // Try block for running Checkov
                 try {
                     sh '''
+                        export PRISMA_API_URL=https://api.prismacloud.io
                         checkov -d . \
                             --use-enforcement-rules \
                             -o cli -o junitxml \
                             --output-file-path console,results.xml \
                             --bc-api-key ${pc_user}::${pc_password} \
-                            --repo-id / github.com/mrauferx/helloprisma \
+                            --repo-id mrauferx/helloprisma \
                             --branch master
                     '''
                     junit skipPublishingChecks: true, testResults: 'results.xml'
