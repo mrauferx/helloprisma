@@ -33,6 +33,38 @@ node {
         }
     }
     end Aqua */
+
+    // Prisma scan stages start here
+    stage('Checkov') {
+        // Use credentials
+        withCredentials([
+            string(credentialsId: 'PC_USER', variable: 'pc_user'),
+            string(credentialsId: 'PC_PASSWORD', variable: 'pc_password')
+        ]) {
+            // Use Docker image
+            docker.image('bridgecrew/checkov:latest').inside("--entrypoint=''") {
+                // Unstash source code
+                unstash 'source'
+                 // Try block for running Checkov
+                try {
+                    sh '''
+                        checkov -d . \
+                            --use-enforcement-rules \
+                            -o cli -o junitxml \
+                            --output-file-path console,results.xml \
+                            --bc-api-key ${pc_user}::${pc_password} \
+                            --repo-id / github.com/mrauferx/helloprisma \
+                            --branch master
+                    '''
+                    junit skipPublishingChecks: true, testResults: 'results.xml'
+                } catch (err) {
+                    junit skipPublishingChecks: true, testResults: 'results.xml'
+                    throw err
+                }
+            }
+        }
+    }
+    // end Prisma
           
     stage('Build Image') {
         app = docker.build("harbor.localdomain/mytest/hellonode")
