@@ -1,5 +1,8 @@
 name: Manually Triggered Workflow
 on:
+#  push:
+#    branches:
+#      - main
   workflow_dispatch:
     #inputs:
     #  logLevel:
@@ -16,27 +19,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Scan Code
-        uses: docker://aquasec/aqua-scanner
-        with:
-          # adding credentials to use aqua registry for trivy db download instead of ghcr to avoid rate limit issues
-          args: trivy fs --scanners misconfig,vuln,secret,license --sast --reachability --db-repository=registry.aquasec.com/trivy-db:2 --checks-bundle-repository=registry.aquasec.com/trivy-checks:1 --java-db-repository=registry.aquasec.com/trivy-java-db:1 .
-          # To customize what security issues to detect (vuln,misconfig,secret,license)
-          # To customize which severities to scan for, add the following flag: --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
-          # To enable SAST scanning, add: --sast
-          # To enable reachability scanning, add: --reachability
-          # To enable npm/dotnet/gradle non-lock file scanning, add: --package-json / --dotnet-proj / --gradle
-          # For http/https proxy configuration add env vars: HTTP_PROXY/HTTPS_PROXY, CA-CRET (path to CA certificate)
-        env:
-          AQUA_KEY: ${{ secrets.AQUA_KEY }}
-          AQUA_SECRET: ${{ secrets.AQUA_SECRET }}
-          GITHUB_TOKEN: ${{ github.token }}
-          AQUA_URL: https://api.eu-1.supply-chain.cloud.aquasec.com
-          CSPM_URL: https://eu-1.api.cloudsploit.com
-          TRIVY_RUN_AS_PLUGIN: 'aqua'
-          TRIVY_USERNAME: ${{ secrets.AQUA_REG_USER }}
-          TRIVY_PASSWORD: ${{ secrets.AQUA_REG_PW }}
-          # For http/https proxy configuration add env vars: HTTP_PROXY/HTTPS_PROXY, CA-CRET (path to CA certificate)
+      - name: Get Temporary Token
+        run: |
+          TOKEN_RESPONSE=$(curl --location "${CORTEX_API_URL}/public_api/v1/unified-cli/image/token" \
+            --header "Authorization: ${CORTEX_API_KEY}" \
+            --header "x-xdr-auth-id: ${CORTEX_API_KEY_ID}" \
+            --header 'Content-Type: application/json' \
+            --data '{}')
+          TEMP_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.token')
+          echo "TEMP_TOKEN=$TEMP_TOKEN" >> $GITHUB_ENV
+
+      - name: Pull Docker Image
+        run: |
+          docker pull distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{env.CORTEX_CLI_VERSION}}
+          docker tag distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{env.CORTEX_CLI_VERSION}} cortexcli:${{env.CORTEX_CLI_VERSION}}
+
+      - name: Run Docker Container
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ env.CORTEX_CLI_VERSION }} \
+            --api-base-url ${CORTEX_API_URL} \
+            --api-key ${CORTEX_API_KEY} \
+            --api-key-id ${CORTEX_API_KEY_ID} \
+            code scan \
+            --directory /home/code \
+            --repo-id ${{github.repository}} \
+            --branch ${{github.ref_name}} \
+            --source 'GITHUB_ACTIONS' \
+            --create-repo-if-missing
 
       - name: Build Docker Image
         # build & tag to GAR
