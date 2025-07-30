@@ -17,7 +17,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Get Temporary Token
         run: |
@@ -29,12 +30,12 @@ jobs:
           TEMP_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.token')
           echo "TEMP_TOKEN=$TEMP_TOKEN" >> $GITHUB_ENV
 
-      - name: Pull Docker Image
+      - name: Pull Scanner Image
         run: |
           docker pull distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{env.CORTEX_CLI_VERSION}}
           docker tag distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{env.CORTEX_CLI_VERSION}} cortexcli:${{env.CORTEX_CLI_VERSION}}
 
-      - name: Run Docker Container
+      - name: Scan Code
         run: |
           docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ env.CORTEX_CLI_VERSION }} \
             --api-base-url ${CORTEX_API_URL} \
@@ -47,70 +48,49 @@ jobs:
             --source 'GITHUB_ACTIONS' \
             --create-repo-if-missing
 
-      - name: Build Docker Image
+      - name: Build Application Image
         # build & tag to GAR
-        run: docker build -t "europe-west3-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}" .
+        run: docker build -t "${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}" .
         # run: docker build -t "quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }}" .
 
-      - name: Test Image
+      - name: Test Application Image
         run: echo "Tests passed."
 
-      - name: Scan Image
-        env:
-          AQUA_REG_USER: ${{ secrets.AQUA_REG_USER }}
-          AQUA_REG_PW: ${{ secrets.AQUA_REG_PW }}
-          SCANNER_TOKEN: ${{ secrets.SCANNER_TOKEN }}
-        # using container scanner:
+      - name: Scan Application Image
         run: |
-          docker login registry.aquasec.com -u ${{ secrets.AQUA_REG_USER }} -p ${{ secrets.AQUA_REG_PW }}
-          docker run -v ./artifacts:/tmp -v /var/run/docker.sock:/var/run/docker.sock registry.aquasec.com/scanner:latest-saas scan -H https://3772126de8.cloud.aquasec.com/ -A ${{ secrets.SCANNER_TOKEN }} --local europe-west3-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} --socket docker --htmlfile /tmp/image-scan_${{ github.run_number }}.html
-        #  docker run -v /var/run/docker.sock:/var/run/docker.sock registry.aquasec.com/scanner:latest-saas scan -H https://3772126de8.cloud.aquasec.com/ -A ${{ secrets.SCANNER_TOKEN }} --local quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }} --socket docker
-        # alternatively, using CLI scanner:
-        # run: |
-        #   wget --user ${{ secrets.AQUA_REG_USER }} --password ${{ secrets.AQUA_REG_PW }} https://download.aquasec.com/scanner/2022.4.720/scannercli
-        #   chmod +x scannercli
-        #   sudo mkdir /opt/aquascans
-        #   sudo ./scannercli scan -A ${{ secrets.SCANNER_TOKEN }} -H https://3772126de8.cloud.aquasec.com/ europe-west3-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} --local
+          docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ env.CORTEX_CLI_VERSION }} \
+            --api-base-url ${CORTEX_API_URL} \
+            --api-key ${CORTEX_API_KEY} \
+            --api-key-id ${CORTEX_API_KEY_ID} \
+            image scan ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
+            --ci-pipeline-id ${{ github.workflow }} \
+            --ci-build-id ${{ github.run_number }} \
+            --name /home/code/${{ github.repository }}.${{ github.run_number }} \
+            --output-format json \
+            --timeout 240
 
-      - name: Archive scan results
+      - name: Archive Scan Results
         uses: actions/upload-artifact@v4
         with:
           name: image-scan-report
-          path: artifacts/image-scan_${{ github.run_number }}.html
+          path: ${{ github.repository }}.${{ github.run_number }}
           retention-days: 20                                               # 90 is the default          
 
-      - name: Manifest Generation
+      - name: Generate Application Image SBOM
         run: |
-          export BILLY_SERVER=https://billy.eu-1.codesec.aquasec.com
-          curl -sLo install.sh download.codesec.aquasec.com/billy/install.sh
-          curl -sLo install.sh.checksum https://github.com/argonsecurity/releases/releases/latest/download/install.sh.checksum
-          if ! cat install.sh.checksum | sha256sum --check; then
-          echo "install.sh checksum failed"
-            exit 1
-          fi
-          BINDIR="." sh install.sh
-          rm install.sh install.sh.checksum
-          ./billy generate \
-            --access-token "${{ github.token }}" \
-            --aqua-key "${{ secrets.AQUA_KEY }}" \
-            --aqua-secret "${{ secrets.AQUA_SECRET }}" \
-            --cspm-url https://eu-1.api.cloudsploit.com \
-            --artifact-path "europe-west3-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}" \
-            --output "./artifacts/sbom_${{ github.run_number }}.json"
-            # --artifact-path "quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }}" \
-            # --output "./artifacts/"
-            # --artifact-path "docker.io/${{ github.repository }}:${{ github.run_number }}" 
-            # --access-token "${{ secrets.GITHUB_TOKEN }}" \
-            # The docker image name:tag of the newly built image
-            # --artifact-path "my-image-name:${{ env.tag-version }}" 
-            # OR the path to the root folder of your project. I.e my-repo/my-app 
-            # --artifact-path "${{env.MY_APP_ROOT}}"
+          docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ env.CORTEX_CLI_VERSION }} \
+            --api-base-url ${CORTEX_API_URL} \
+            --api-key ${CORTEX_API_KEY} \
+            --api-key-id ${CORTEX_API_KEY_ID} \
+            image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
+            --output-file /home/code/${{ github.repository }}.${{ github.run_number }}.sbom \
+            --fields author, binaries, license, name, purl, sourcePackage, type, version
 
-      - name: Archive manifest files
+      - name: Archive Application Image SBOM
         uses: actions/upload-artifact@v4
         with:
           name: sbom-manifests
-          path: artifacts/sbom_${{ github.run_number }}.json
+          path: ${{ github.repository }}.${{ github.run_number }}.sbom
           retention-days: 20                                               # 90 is the default
 
       - id: auth
@@ -124,7 +104,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT }}                            # gcp project name 
           install_components: 'gke-gcloud-auth-plugin'                      # for kube auth to work
 
-      - name: Push to Registry
+      - name: Push Application Image to Registry
         env:
           GCP_PROJECT: ${{ secrets.GCP_PROJECT }}                                  # gcp project name 
         run: |
@@ -138,7 +118,7 @@ jobs:
       #    docker login quay.io -u ${{ secrets.QUAY_USER }} -p ${{ secrets.QUAY_PW }}
       #    docker push quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }}
 
-      - name: deploy to gke
+      - name: Deploy Application to GKE
         env:
           GCP_PROJECT: ${{ secrets.GCP_PROJECT }}                                  # gcp project name 
        #   GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
