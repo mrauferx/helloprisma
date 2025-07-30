@@ -7,7 +7,7 @@ replicaCount: 1
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: harbor.localdomain/mytest/hellonode
+  repository: harbor.localdomain/mytest/helloprisma
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
@@ -24,7 +24,7 @@ imageCredentials:
     # If imageCredentials.create=create and imageCredentials.name defined
     # then will be created a secret with name provided name
     create: true
-    name: "hellonode-registry"
+    name: "helloprisma-registry"
     #repositoryUriPrefix: "harbor.localdomain" # for dockerhub - "docker.io"
     #registry: "harbor.localdomain" #REQUIRED only if create is true, for dockerhub - "index.docker.io/v1/"
     #username: ""
@@ -47,7 +47,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "hellonode-sa"
+  name: "helloprisma-sa"
 
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/ 

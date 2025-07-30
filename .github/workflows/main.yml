@@ -49,7 +49,6 @@ jobs:
             --create-repo-if-missing
 
       - name: Build Application Image
-        # build & tag to GAR
         run: docker build -t "${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}" .
         # run: docker build -t "quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }}" .
 
@@ -74,7 +73,7 @@ jobs:
         with:
           name: image-scan-report
           path: ${{ github.repository }}.${{ github.run_number }}
-          retention-days: 20                                               # 90 is the default          
+          retention-days: 20                                                # 90 is the default          
 
       - name: Generate Application Image SBOM
         run: |
@@ -91,12 +90,12 @@ jobs:
         with:
           name: sbom-manifests
           path: ${{ github.repository }}.${{ github.run_number }}.sbom
-          retention-days: 20                                               # 90 is the default
+          retention-days: 20                                                # 90 is the default
 
       - id: auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'                # SA with access to registry and cluster
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -106,10 +105,10 @@ jobs:
 
       - name: Push Application Image to Registry
         env:
-          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}                                  # gcp project name 
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}                           # gcp project name 
         run: |
-          gcloud auth configure-docker europe-west3-docker.pkg.dev
-          docker push europe-west3-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+          gcloud auth configure-docker ${{ secrets.GAR_PREFIX }}
+          docker push ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
       #  env:
       #    QUAY_USER: ${{ secrets.QUAY_USER }}
       #    QUAY_PW: ${{ secrets.QUAY_PW }}
@@ -120,20 +119,20 @@ jobs:
 
       - name: Deploy Application to GKE
         env:
-          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}                                  # gcp project name 
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}                           # gcp project name 
        #   GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
        #   QUAY_USER: ${{ secrets.QUAY_USER }}
        #   QUAY_PW: ${{ secrets.QUAY_PW }}          
         run: |
-          gcloud container clusters get-credentials autopilot-cluster-1 --region europe-west3
-          # gcloud auth configure-docker europe-west3-docker.pkg.dev
+          gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.GCP_PROJECT }}
+          # gcloud auth configure-docker ${{ secrets.GAR_PREFIX }}
           helm upgrade \
           ${{ github.event.repository.name }} \
           helm \
           --install \
           --create-namespace \
           --namespace ${{ github.event.repository.name }} \
-          --set image.repository=europe-west3-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/${{ github.repository }} \
+          --set image.repository=${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }} \
           --set image.tag=${{ github.run_number }} \
           --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
        #   --set imageCredentials.username=${{ secrets.QUAY_USER }} \

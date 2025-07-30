@@ -1,6 +1,6 @@
 apiVersion: v2
-name: hellonode
-description: A Helm chart for hellonode
+name: helloprisma
+description: A Helm chart for helloprisma
 
 type: application
 
