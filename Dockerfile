@@ -2,7 +2,7 @@
 ####### Below is for building app ########
 # switch node base image for good / bad build - newer = good
 #FROM node:18.10.0-alpine3.16 as installer
-FROM node:23.10.0-alpine3.21 as installer
+FROM node:23.10.0-alpine3.21 AS installer
 
 # copy application into container
 COPY app/* /app/
