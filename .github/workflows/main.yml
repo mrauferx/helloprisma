@@ -77,21 +77,22 @@ jobs:
       #    retention-days: 20                                                # 90 is the default          
 
       - name: Generate Application Image SBOM
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
-            --api-base-url ${{ secrets.CORTEX_API_URL }} \
-            --api-key ${{ secrets.CORTEX_API_KEY }} \
-            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
-            --output-file /home/code/${{ github.repository }}.${{ github.run_number }}.sbom \
-            --fields author, binaries, license, name, purl, sourcePackage, type, version
+        run: echo "Image scanner currently not working ..."
+        #run: |
+        #  docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
+        #    --api-base-url ${{ secrets.CORTEX_API_URL }} \
+        #    --api-key ${{ secrets.CORTEX_API_KEY }} \
+        #    --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+        #    image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
+        #    --output-file /home/code/${{ github.repository }}.${{ github.run_number }}.sbom \
+        #    --fields author, binaries, license, name, purl, sourcePackage, type, version
 
-      - name: Archive Application Image SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-manifests
-          path: ${{ github.repository }}.${{ github.run_number }}.sbom
-          retention-days: 20                                                # 90 is the default
+      #- name: Archive Application Image SBOM
+      #  uses: actions/upload-artifact@v4
+      #  with:
+      #    name: sbom-manifests
+      #    path: ${{ github.repository }}.${{ github.run_number }}.sbom
+      #    retention-days: 20                                                # 90 is the default
 
       - id: auth
         uses: google-github-actions/auth@v2
