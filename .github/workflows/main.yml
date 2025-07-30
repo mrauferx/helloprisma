@@ -22,9 +22,9 @@ jobs:
 
       - name: Get Temporary Token
         run: |
-          TOKEN_RESPONSE=$(curl --location "${CORTEX_API_URL}/public_api/v1/unified-cli/image/token" \
-            --header "Authorization: ${CORTEX_API_KEY}" \
-            --header "x-xdr-auth-id: ${CORTEX_API_KEY_ID}" \
+          TOKEN_RESPONSE=$(curl --location "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/image/token" \
+            --header "Authorization: ${{ secrets.CORTEX_API_KEY }}" \
+            --header "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" \
             --header 'Content-Type: application/json' \
             --data '{}')
           TEMP_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.token')
@@ -32,15 +32,15 @@ jobs:
 
       - name: Pull Scanner Image
         run: |
-          docker pull distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{env.CORTEX_CLI_VERSION}}
-          docker tag distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{env.CORTEX_CLI_VERSION}} cortexcli:${{env.CORTEX_CLI_VERSION}}
+          docker pull distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{ secrets.CORTEX_CLI_VERSION }}
+          docker tag distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{ secrets.CORTEX_CLI_VERSION }} cortexcli:${{ secrets.CORTEX_CLI_VERSION }}
 
       - name: Scan Code
         run: |
-          docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ env.CORTEX_CLI_VERSION }} \
-            --api-base-url ${CORTEX_API_URL} \
-            --api-key ${CORTEX_API_KEY} \
-            --api-key-id ${CORTEX_API_KEY_ID} \
+          docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
+            --api-base-url ${{ secrets.CORTEX_API_URL }} \
+            --api-key ${{ secrets.CORTEX_API_KEY }} \
+            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             code scan \
             --directory /home/code \
             --repo-id ${{github.repository}} \
@@ -57,10 +57,10 @@ jobs:
 
       - name: Scan Application Image
         run: |
-          docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ env.CORTEX_CLI_VERSION }} \
-            --api-base-url ${CORTEX_API_URL} \
-            --api-key ${CORTEX_API_KEY} \
-            --api-key-id ${CORTEX_API_KEY_ID} \
+          docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
+            --api-base-url ${{ secrets.CORTEX_API_URL }} \
+            --api-key ${{ secrets.CORTEX_API_KEY }} \
+            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             image scan ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
             --ci-pipeline-id ${{ github.workflow }} \
             --ci-build-id ${{ github.run_number }} \
@@ -77,10 +77,10 @@ jobs:
 
       - name: Generate Application Image SBOM
         run: |
-          docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ env.CORTEX_CLI_VERSION }} \
-            --api-base-url ${CORTEX_API_URL} \
-            --api-key ${CORTEX_API_KEY} \
-            --api-key-id ${CORTEX_API_KEY_ID} \
+          docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
+            --api-base-url ${{ secrets.CORTEX_API_URL }} \
+            --api-key ${{ secrets.CORTEX_API_KEY }} \
+            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
             --output-file /home/code/${{ github.repository }}.${{ github.run_number }}.sbom \
             --fields author, binaries, license, name, purl, sourcePackage, type, version
