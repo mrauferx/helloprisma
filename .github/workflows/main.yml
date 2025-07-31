@@ -56,7 +56,7 @@ jobs:
         run: echo "Tests passed."
 
       - name: Scan Application Image
-        run: echo "Image scanner currently not working ..."
+        # run: echo "Image scanner currently not working ..."
         run: |
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
@@ -65,7 +65,7 @@ jobs:
             image scan ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
             --ci-pipeline-id ${{ github.workflow }} \
             --ci-build-id ${{ github.run_number }} \
-            --name /home/code/${{ github.repository }}.${{ github.run_number }} \
+            --name /home/code/${#{ github.repository }}.${{ github.run_number }} \
             --output-format json \
             --timeout 240
 
@@ -77,7 +77,7 @@ jobs:
           retention-days: 20                                                # 90 is the default          
 
       - name: Generate Application Image SBOM
-        run: echo "Image scanner currently not working ..."
+        # run: echo "Image scanner currently not working ..."
         run: |
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
