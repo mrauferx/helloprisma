@@ -80,7 +80,7 @@ jobs:
             image scan ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
             --ci-pipeline-id ${{ github.workflow }} \
             --ci-build-id ${{ github.run_number }} \
-            --name /home/code/${{ github.repository }}.${{ github.run_number }} \
+            --name /tmp/${{ github.repository }}-${{ github.run_number }}-scan.json \
             --output-format json \
             --timeout 240
           
@@ -88,7 +88,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: image-scan-report
-          path: ${{ github.repository }}.${{ github.run_number }}
+          path: /tmp/${{ github.repository }}-${{ github.run_number }}-scan.json
           retention-days: 20                                                # 90 is the default          
 
       - name: Generate Application Image SBOM
@@ -108,14 +108,14 @@ jobs:
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
-            --output-file /home/code/${{ github.repository }}.${{ github.run_number }}.sbom \
+            --output-file /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json \
             --fields author, binaries, license, name, purl, sourcePackage, type, version
 
       - name: Archive Application Image SBOM
         uses: actions/upload-artifact@v4
         with:
           name: sbom-manifests
-          path: ${{ github.repository }}.${{ github.run_number }}.sbom
+          path: /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json
           retention-days: 20                                                # 90 is the default
 
       - id: auth
@@ -154,13 +154,13 @@ jobs:
           # gcloud auth configure-docker ${{ secrets.GAR_PREFIX }}
           helm upgrade \
           ${{ github.event.repository.name }} \
-          helm \
-          --upgrade \
+          --install \
           --create-namespace \
           --namespace ${{ github.event.repository.name }} \
           --set image.repository=${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }} \
           --set image.tag=${{ github.run_number }} \
           --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
+       #   helm \
        #   --set imageCredentials.username=${{ secrets.QUAY_USER }} \
        #   --set imageCredentials.password=${{ secrets.QUAY_PW }} \
        #   --set imageCredentials.repositoryUriPrefix=quay.io \
