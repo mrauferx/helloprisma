@@ -56,9 +56,24 @@ jobs:
         run: echo "Tests passed."
 
       - name: Scan Application Image
-        # run: echo "Image scanner currently not working ..."
+        # run: echo "Image scanner currently not working as Docker image ..."
+        #run: |
+        #  docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
+        #    --api-base-url ${{ secrets.CORTEX_API_URL }} \
+        #    --api-key ${{ secrets.CORTEX_API_KEY }} \
+        #    --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+        #    image scan ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
+        #    --ci-pipeline-id ${{ github.workflow }} \
+        #    --ci-build-id ${{ github.run_number }} \
+        #    --name /home/code/${{ github.repository }}.${{ github.run_number }} \
+        #    --output-format json \
+        #    --timeout 240
+        # alternatively, use CLI scanner ...
         run: |
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
+          curl -s -o cortexcli $(curl -s "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64" \
+            -H "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" -H "Authorization: ${{ secrets.CORTEX_API_KEY }}" | jq -r ".signed_url")
+          chmod +x cortexcli
+          sudo ./cortexcli \
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
@@ -68,7 +83,7 @@ jobs:
             --name /home/code/${{ github.repository }}.${{ github.run_number }} \
             --output-format json \
             --timeout 240
-
+          
       - name: Archive Scan Results
         uses: actions/upload-artifact@v4
         with:
@@ -77,9 +92,18 @@ jobs:
           retention-days: 20                                                # 90 is the default          
 
       - name: Generate Application Image SBOM
-        # run: echo "Image scanner currently not working ..."
+        # run: echo "Image scanner currently not working as Docker image ..."
+        #run: |
+        #  docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
+        #    --api-base-url ${{ secrets.CORTEX_API_URL }} \
+        #    --api-key ${{ secrets.CORTEX_API_KEY }} \
+        #    --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+        #    image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
+        #    --output-file /home/code/${{ github.repository }}.${{ github.run_number }}.sbom \
+        #    --fields author, binaries, license, name, purl, sourcePackage, type, version
+        # alternatively, use CLI scanner ...
         run: |
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
+          sudo ./cortexcli \
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
