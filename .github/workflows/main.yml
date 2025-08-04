@@ -154,13 +154,13 @@ jobs:
           # gcloud auth configure-docker ${{ secrets.GAR_PREFIX }}
           helm upgrade \
           ${{ github.event.repository.name }} \
+          helm \
           --install \
           --create-namespace \
           --namespace ${{ github.event.repository.name }} \
           --set image.repository=${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }} \
           --set image.tag=${{ github.run_number }} \
           --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
-       #   helm \
        #   --set imageCredentials.username=${{ secrets.QUAY_USER }} \
        #   --set imageCredentials.password=${{ secrets.QUAY_PW }} \
        #   --set imageCredentials.repositoryUriPrefix=quay.io \
