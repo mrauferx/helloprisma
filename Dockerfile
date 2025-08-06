@@ -1,8 +1,8 @@
 ####### This is a multi-stage build ######
 ####### Below is for building app ########
 # switch node base image for good / bad build - newer = good
-#FROM node:18.10.0-alpine3.16 as installer
-FROM node:23.10.0-alpine3.21 AS installer
+FROM node:18.10.0-alpine3.16 AS installer
+#FROM node:23.10.0-alpine3.21 AS installer
 
 # copy application into container
 COPY app/* /app/
@@ -12,15 +12,15 @@ WORKDIR /app
 
 # build app
 # switch -g npm@11.2.0 for good / bad build
-#RUN npm install --omit=dev --unsafe-perm && \
-#    npm dedupe 
-RUN npm install -g npm@11.2.0 --omit=dev --unsafe-perm && \
+RUN npm install --omit=dev --unsafe-perm && \
     npm dedupe 
+#RUN npm install -g npm@11.2.0 --omit=dev --unsafe-perm && \
+#    npm dedupe 
 
 ####### Below is for building image ########
 # switch node base image for good / bad build - newer = good
-#FROM node:18.10.0-alpine3.16
-FROM node:23.10.0-alpine3.21
+FROM node:18.10.0-alpine3.16
+#FROM node:23.10.0-alpine3.21
 
 # Arguments for use in image build
 ARG USER=simple
@@ -56,10 +56,10 @@ RUN find / -xdev -perm /6000 -type f -exec chmod a-s {} \; || true
 USER ${UID}
 
 # set a health check
-#HEALTHCHECK --interval=30s \
-#            --timeout=5s \
-#            --retries=3 \
-#            CMD curl -f http://127.0.0.1:8000 || exit 1
+HEALTHCHECK --interval=30s \
+            --timeout=5s \
+            --retries=3 \
+            CMD curl -f http://127.0.0.1:8000 || exit 1
 
 # tell docker what port to expose
 EXPOSE 8000
