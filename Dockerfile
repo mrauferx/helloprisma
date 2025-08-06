@@ -66,4 +66,5 @@ EXPOSE 8000
 
 # tell docker what command to run when container is run
 CMD npm start
+#CMD ["npm", "start"]
 

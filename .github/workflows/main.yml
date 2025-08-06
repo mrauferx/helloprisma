@@ -1,4 +1,4 @@
-name: Manually Triggered Workflow
+name: Build - Scan - Deploy Workflow
 on:
 #  push:
 #    branches:
