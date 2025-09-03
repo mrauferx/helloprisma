@@ -17,7 +17,6 @@ Credentials for Git, security tools, cluster, and registry must be defined in Je
 CORTEX_API_KEY_ID	Cortex API key ID (for scanning)
 CORTEX_API_KEY		Cortex API kes / secret (for scanning)
 CORTEX_API_URL		Cortex API endpoint URL (for scanning)
-CORTEX_CLI_VERSION	Cortex CLI version (for scanning (to do: set as variable, not as secret)
 GAR_PREFIX			Google artifact registry prefix (to do: set as variable, not as secret)
 GCP_CREDENTIALS		GCP credentials - registry SA key json (for authentication; SA also has Kubernetes Engine Developer role for deployment)
 GCP_PROJECT			GCP project ID (to do: set as variable, not as secret)
