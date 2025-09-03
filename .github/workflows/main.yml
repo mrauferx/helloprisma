@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CORTEX_CLI_VERSION: 0.13.0
+      JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -168,11 +169,15 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'                # SA with access to registry and cluster
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT }}                            # gcp project name 
-          install_components: 'gke-gcloud-auth-plugin'                      # for kube auth to work
+      # test if Google Cloud SDK is already installed in runner ...
+      - name: Verify Google Cloud SDK
+        run: gcloud version
+
+      #- name: Set up Google Cloud SDK
+      #  uses: google-github-actions/setup-gcloud@v2
+      #  with:
+      #    project_id: ${{ secrets.GCP_PROJECT }}                            # gcp project name 
+      #    install_components: 'gke-gcloud-auth-plugin'                      # for kube auth to work
 
       - name: Push Application Image to Registry
         env:
@@ -195,6 +200,7 @@ jobs:
        #   QUAY_USER: ${{ secrets.QUAY_USER }}
        #   QUAY_PW: ${{ secrets.QUAY_PW }}          
         run: |
+          gcloud components install gke-gcloud-auth-plugin
           gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.GCP_PROJECT }}
           # gcloud auth configure-docker ${{ secrets.GAR_PREFIX }}
           helm upgrade \
