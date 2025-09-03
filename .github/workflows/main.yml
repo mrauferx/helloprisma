@@ -201,7 +201,10 @@ jobs:
        #   QUAY_PW: ${{ secrets.QUAY_PW }}          
         run: |
           # gcloud components install gke-gcloud-auth-plugin
-          sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
+          gcloud components list
+          # curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+          # echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+          # sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
           gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.GCP_PROJECT }}
           # gcloud auth configure-docker ${{ secrets.GAR_PREFIX }}
           helm upgrade \
