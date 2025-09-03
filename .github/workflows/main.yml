@@ -201,7 +201,7 @@ jobs:
        #   QUAY_PW: ${{ secrets.QUAY_PW }}          
         run: |
           # gcloud components install gke-gcloud-auth-plugin
-          apt-get install google-cloud-cli-gke-gcloud-auth-plugin
+          sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
           gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.GCP_PROJECT }}
           # gcloud auth configure-docker ${{ secrets.GAR_PREFIX }}
           helm upgrade \
