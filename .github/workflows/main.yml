@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CORTEX_CLI_VERSION: 0.13.0
+      JAVA_HOME: JAVA_HOME_11_X64
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -101,8 +102,6 @@ jobs:
       
       # test if java is already installed in runner ...
       - name: Verify Java Version
-        env:
-          JAVA_HOME: JAVA_HOME_11_X64
         run: java -version
 
       - name: Scan Application Image
@@ -201,7 +200,8 @@ jobs:
        #   QUAY_USER: ${{ secrets.QUAY_USER }}
        #   QUAY_PW: ${{ secrets.QUAY_PW }}          
         run: |
-          gcloud components install gke-gcloud-auth-plugin
+          # gcloud components install gke-gcloud-auth-plugin
+          apt-get install google-cloud-cli-gke-gcloud-auth-plugin
           gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.GCP_PROJECT }}
           # gcloud auth configure-docker ${{ secrets.GAR_PREFIX }}
           helm upgrade \
