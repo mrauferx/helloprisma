@@ -18,7 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CORTEX_CLI_VERSION: 0.13.0
-      JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -102,6 +101,8 @@ jobs:
       
       # test if java is already installed in runner ...
       - name: Verify Java Version
+        env:
+          JAVA_HOME: JAVA_HOME_11_X64
         run: java -version
 
       - name: Scan Application Image
