@@ -19,41 +19,86 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+      
+      # required for scanning JavaScript when using CLI scanner
+      #- name: Set up Node.js
+      #  uses: actions/setup-node@v4
+      #  with: 
+      #    node-version: 22
+      
+      # test if node is already installed in runner ...
+      - name: Verify Node.js Version
+        run: node -v
 
-      - name: Get Temporary Token
-        run: |
-          TOKEN_RESPONSE=$(curl --location "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/image/token" \
-            --header "Authorization: ${{ secrets.CORTEX_API_KEY }}" \
-            --header "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" \
-            --header 'Content-Type: application/json' \
-            --data '{}')
-          TEMP_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.token')
-          echo "TEMP_TOKEN=$TEMP_TOKEN" >> $GITHUB_ENV
+      # required if using Docker scanner image
+      #- name: Get Temporary Token
+      #  run: |
+      #    TOKEN_RESPONSE=$(curl --location "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/image/token" \
+      #      --header "Authorization: ${{ secrets.CORTEX_API_KEY }}" \
+      #      --header "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" \
+      #      --header 'Content-Type: application/json' \
+      #      --data '{}')
+      #    TEMP_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.token')
+      #    echo "TEMP_TOKEN=$TEMP_TOKEN" >> $GITHUB_ENV
 
-      - name: Pull Scanner Image
+      # required if using Docker scanner image
+      #- name: Pull Scanner Image
+      #  run: |
+      #    docker pull distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{ secrets.CORTEX_CLI_VERSION }}
+      #    docker tag distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{ secrets.CORTEX_CLI_VERSION }} cortexcli:${{ secrets.CORTEX_CLI_VERSION }}
+
+      - name: Download cortexcli
         run: |
-          docker pull distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{ secrets.CORTEX_CLI_VERSION }}
-          docker tag distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{ secrets.CORTEX_CLI_VERSION }} cortexcli:${{ secrets.CORTEX_CLI_VERSION }}
+          curl -s -o cortexcli $(curl -s "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64" \
+            -H "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" -H "Authorization: ${{ secrets.CORTEX_API_KEY }}" | jq -r ".signed_url")
+          chmod +x cortexcli
+          ./cortexcli --version
 
       - name: Scan Code
+        # run: echo "code scanner as Docker image"
+        #run: |
+        #  docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
+        #    --api-base-url ${{ secrets.CORTEX_API_URL }} \
+        #    --api-key ${{ secrets.CORTEX_API_KEY }} \
+        #    --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+        #    code scan \
+        #    --directory /home/code \
+        #    --repo-id ${{github.repository}} \
+        #    --branch ${{github.ref_name}} \
+        #    --source 'GITHUB_ACTIONS' \
+        #    --create-repo-if-missing
+        # alternatively, using CLI scanner ...
         run: |
-          docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ secrets.CORTEX_CLI_VERSION }} \
+          ./cortexcli \
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             code scan \
-            --directory /home/code \
+            --directory ${{ github.workspace }} \
             --repo-id ${{github.repository}} \
             --branch ${{github.ref_name}} \
             --source 'GITHUB_ACTIONS' \
             --create-repo-if-missing
 
       - name: Build Application Image
-        run: docker build -t "${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}" .
+        run: |
+          docker build -t "${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}" .
+          docker save -o "${{ secrets.GAR_PREFIX }}-${{ secrets.GCP_PROJECT }}-${{ github.repository }}.${{ github.run_number }}.tar" "${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}"
         # run: docker build -t "quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }}" .
 
       - name: Test Application Image
         run: echo "Tests passed."
+
+      # required for scanning images when using CLI scanner - doc says JDK 11 (!)
+      #- name: Set up Java
+      #  uses: actions/setup-java@v4
+      #  with:
+      #    distribution: 'temurin' # See 'Supported distributions' for available options
+      #    java-version: '21'
+      
+      # test if java is already installed in runner ...
+      - name: Verify Java Version
+        run: java -version
 
       - name: Scan Application Image
         # run: echo "Image scanner currently not working as Docker image ..."
@@ -68,19 +113,16 @@ jobs:
         #    --name /home/code/${{ github.repository }}.${{ github.run_number }} \
         #    --output-format json \
         #    --timeout 240
-        # alternatively, use CLI scanner ...
+        # alternatively, use CLI scanner, must scan .tar archive, not image directly (1)
         run: |
-          curl -s -o cortexcli $(curl -s "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64" \
-            -H "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" -H "Authorization: ${{ secrets.CORTEX_API_KEY }}" | jq -r ".signed_url")
-          chmod +x cortexcli
-          sudo ./cortexcli \
+          ./cortexcli \
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            image scan ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
+            image scan --archive ${{ secrets.GAR_PREFIX }}-${{ secrets.GCP_PROJECT }}-${{ github.repository }}.${{ github.run_number }}.tar \
             --ci-pipeline-id ${{ github.workflow }} \
             --ci-build-id ${{ github.run_number }} \
-            --name /tmp/${{ github.repository }}-${{ github.run_number }}-scan.json \
+            --name ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
             --output-format json \
             --timeout 240
           
@@ -103,7 +145,7 @@ jobs:
         #    --fields author, binaries, license, name, purl, sourcePackage, type, version
         # alternatively, use CLI scanner ...
         run: |
-          sudo ./cortexcli \
+          ./cortexcli \
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
