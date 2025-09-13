@@ -14,6 +14,7 @@ The scenario has been extended to use GitHub Actions as the pipeline to build, P
 Access to Prisma or Cortex Cloud SaaS, a GCP project with GAR and GKE are required.
 Credentials for Git, security tools, cluster, and registry must be defined in Jenkins or GitHub.
 
+```markdown
 CORTEX_API_KEY_ID	Cortex API key ID (for scanning)
 CORTEX_API_KEY		Cortex API kes / secret (for scanning)
 CORTEX_API_URL		Cortex API endpoint URL (for scanning)
@@ -22,11 +23,14 @@ GCP_CREDENTIALS		GCP credentials - registry SA key json (for authentication; SA 
 GCP_PROJECT			GCP project ID (to do: set as variable, not as secret)
 GKE_CLUSTER			GKE cluster name
 GKE_ZONE			GKE cluster zone (to do: set as variable, not as secret)
+```
 
 Jenkins needs to run locally to the registry. Alternatively, change to push to a remote registry such as quay.io.
 A RootCA.crt file is present, for now, on the Jenkins node to connect to the local registry. (to do: make this more generic)
 
+```markdown
 PC_USER             Prisma API key
 PC_PASSWORD         Prisma API secret
 REG_USER            local registry user
 REG_PW              local registry password
+```
