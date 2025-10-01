@@ -1,6 +1,6 @@
 node {
     // not sure this is needed
-    def app
+    // def app
 
     /* Prisma content
     stage('Clone repository') {
@@ -162,7 +162,7 @@ node {
 
             stage('Run Code Scan') {
                 script {
-                    unstash 'source'
+                    // unstash 'source'
 
                     sh """
                         ./cortexcli \
