@@ -1,6 +1,8 @@
 node {
+    // not sure this is needed
     def app
 
+    /* Prisma content
     stage('Clone repository') {
         checkout scm
     }
@@ -56,7 +58,7 @@ node {
     stage ('publish') {
         twistlockPublish ca: '', cert: '', dockerAddress: 'unix:///var/run/docker.sock', image: 'mraufer/hellonode:latest', key: '', logLevel: 'true', timeout: 10
     }
-    end Twistlock */
+    end Twistlock 
 
     // Prisma scan stages start here
     // using Jenkins plug-in:
@@ -112,5 +114,70 @@ node {
             } 
         }
     }
+    
+} 
+
+node {
     */
+    // Cortex XDR scan stages start here - only code scan sample available, not image scan nor sbom creation
+    // using CLI binary instead of CLI Docker container
+    docker.image('cimg/node:22.17.0').inside('-u root') {
+        
+        // Set environment variables
+        withCredentials([
+            string(credentialsId: 'CORTEX_API_KEY', variable: 'CORTEX_API_KEY'),
+            string(credentialsId: 'CORTEX_API_KEY_ID', variable: 'CORTEX_API_KEY_ID')
+        ]) {
+            env.CORTEX_API_URL = 'https://api-unifiedcloudsecops.xdr.us.paloaltonetworks.com'
+
+            stage('Clone repository') {
+                checkout scm
+            }
+
+            stage('Install Dependencies') {
+                sh '''
+                    apt update
+                    apt install -y curl jq git
+                '''
+            }
+
+            stage('Download cortexcli') {
+                script {
+                    def response = sh(script: """
+                        curl --location '${env.CORTEX_API_URL}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64' \
+                          --header 'Authorization: ${env.CORTEX_API_KEY}' \
+                          --header 'x-xdr-auth-id: ${env.CORTEX_API_KEY_ID}' \
+                          --silent
+                    """, returnStdout: true).trim()
+
+                    def downloadUrl = sh(script: """echo '${response}' | jq -r '.signed_url'""", returnStdout: true).trim()
+
+                    sh """
+                        curl -o cortexcli '${downloadUrl}'
+                        chmod +x cortexcli
+                        ./cortexcli --version
+                    """
+                }
+            }
+
+            stage('Run Code Scan') {
+                script {
+                    unstash 'source'
+
+                    sh """
+                        ./cortexcli \
+                          --api-base-url "${env.CORTEX_API_URL}" \
+                          --api-key "${env.CORTEX_API_KEY}" \
+                          --api-key-id "${env.CORTEX_API_KEY_ID}" \
+                          code scan \
+                          --directory "\$(pwd)" \
+                          --repo-id "mrauferx/helloprisma" \
+                          --branch "master" \
+                          --source "JENKINS" \
+                          --create-repo-if-missing
+                    """
+                }
+            }
+        }
+    }
 }
