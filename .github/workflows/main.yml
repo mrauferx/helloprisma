@@ -127,7 +127,6 @@ jobs:
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            # image scan --archive /tmp/image.tar \
             image scan ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
             --ci-pipeline-id ${{ github.workflow }} \
             --ci-build-id ${{ github.run_number }} \
@@ -158,7 +157,6 @@ jobs:
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            # image sbom --archive /tmp/image.tar \
             image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
             --output-file /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json \
             --fields author, binaries, license, name, purl, sourcePackage, type, version
