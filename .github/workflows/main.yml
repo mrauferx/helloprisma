@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CORTEX_CLI_VERSION: 0.13.0
-      JAVA_HOME: JAVA_HOME_11_X64
+      JAVA_HOME: JAVA_HOME_21_X64
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -58,8 +58,8 @@ jobs:
           chmod +x cortexcli
           ./cortexcli --version
           # ls -la .cortexcli
-          sudo apt-get update
-          sudo apt-get install -y libhyperscan5
+          # sudo apt-get update
+          # sudo apt-get install -y libhyperscan5
 
       - name: Scan Code
         # run: echo "code scanner as Docker image"
@@ -133,6 +133,8 @@ jobs:
             --name ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
             --output-format json \
             --timeout 240
+            --log-level ERROR
+            --upload-mode upload
           
       - name: Archive Scan Results
         uses: actions/upload-artifact@v4
@@ -160,6 +162,7 @@ jobs:
             image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
             --output-file /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json \
             --fields author, binaries, license, name, purl, sourcePackage, type, version
+            --log-level ERROR
 
       - name: Archive Image SBOM
         uses: actions/upload-artifact@v4
@@ -212,7 +215,7 @@ jobs:
           sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
           curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
           sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-          # sudo apt-get update
+          sudo apt-get update
           sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
           # gke-gcloud-auth-plugin --version
 
