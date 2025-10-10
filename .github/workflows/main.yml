@@ -57,7 +57,9 @@ jobs:
             -H "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" -H "Authorization: ${{ secrets.CORTEX_API_KEY }}" | jq -r ".signed_url")
           chmod +x cortexcli
           ./cortexcli --version
-          ls -la .cortexcli
+          # ls -la .cortexcli
+          sudo apt-get update
+          sudo apt-get install -y libhyperscan5
 
       - name: Scan Code
         # run: echo "code scanner as Docker image"
@@ -212,7 +214,7 @@ jobs:
           sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
           curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
           sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-          sudo apt-get update
+          # sudo apt-get update
           sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
           # gke-gcloud-auth-plugin --version
 
