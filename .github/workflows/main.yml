@@ -57,6 +57,7 @@ jobs:
             -H "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" -H "Authorization: ${{ secrets.CORTEX_API_KEY }}" | jq -r ".signed_url")
           chmod +x cortexcli
           ./cortexcli --version
+          ls -la .cortexcli
 
       - name: Scan Code
         # run: echo "code scanner as Docker image"
@@ -88,7 +89,7 @@ jobs:
       - name: Build Image
         run: |
           docker build -t "${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}" .
-          docker save -o /tmp/image.tar ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+          # docker save -o /tmp/image.tar ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
         # run: docker build -t "quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }}" .
 
       - name: Test Image
@@ -124,7 +125,8 @@ jobs:
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            image scan --archive /tmp/image.tar \
+            # image scan --archive /tmp/image.tar \
+            image scan ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
             --ci-pipeline-id ${{ github.workflow }} \
             --ci-build-id ${{ github.run_number }} \
             --name ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
@@ -154,7 +156,8 @@ jobs:
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            image sbom --archive /tmp/image.tar \
+            # image sbom --archive /tmp/image.tar \
+            image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
             --output-file /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json \
             --fields author, binaries, license, name, purl, sourcePackage, type, version
 
