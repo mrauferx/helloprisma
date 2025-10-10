@@ -132,8 +132,8 @@ jobs:
             --ci-build-id ${{ github.run_number }} \
             --name ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
             --output-format json \
-            --timeout 240
-            --log-level ERROR
+            --timeout 240 \
+            --log-level ERROR \
             --upload-mode upload
           
       - name: Archive Scan Results
@@ -161,7 +161,7 @@ jobs:
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
             --output-file /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json \
-            --fields author, binaries, license, name, purl, sourcePackage, type, version
+            --fields author, binaries, license, name, purl, sourcePackage, type, version \
             --log-level ERROR
 
       - name: Archive Image SBOM
