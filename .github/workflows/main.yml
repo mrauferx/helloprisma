@@ -18,17 +18,19 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CORTEX_CLI_VERSION: 0.13.0
-      JAVA_HOME: JAVA_HOME_11_X64
+      # JAVA_HOME: JAVA_HOME_11_X64
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
       
+      # Java not needed for Uptycs scan
       # required for scanning JavaScript when using CLI scanner
       #- name: Set up Node.js
       #  uses: actions/setup-node@v4
       #  with: 
       #    node-version: 22
       
+      # Node.JS not needed for Uptycs scan
       # node is already installed in runner ...
       #- name: Verify Node.js Version
       #  run: node -v
@@ -51,17 +53,17 @@ jobs:
       #    docker tag distributions.traps.paloaltonetworks.com/cli-docker/${{env.TEMP_TOKEN}}/method:amd64-${{ env.CORTEX_CLI_VERSION }} cortexcli:${{ env.CORTEX_CLI_VERSION }}
 
       # required if using CLI scanner
-      - name: Download cortexcli
-        run: |
-          curl -s -o cortexcli $(curl -s "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64" \
-            -H "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" -H "Authorization: ${{ secrets.CORTEX_API_KEY }}" | jq -r ".signed_url")
-          chmod +x cortexcli
-          ./cortexcli --version
+      #- name: Download cortexcli
+      #  run: |
+      #    curl -s -o cortexcli $(curl -s "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64" \
+      #      -H "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" -H "Authorization: ${{ secrets.CORTEX_API_KEY }}" | jq -r ".signed_url")
+      #    chmod +x cortexcli
+      #    ./cortexcli --version
           # ls -la .cortexcli
           # sudo apt-get update
           # sudo apt-get install -y libhyperscan5
 
-      - name: Scan Code
+      #- name: Scan Code
         # run: echo "code scanner as Docker image"
         #run: |
         #  docker run --rm -v ${{ github.workspace }}:/home/code cortexcli:${{ env.CORTEX_CLI_VERSION }} \
@@ -75,17 +77,17 @@ jobs:
         #    --source 'GITHUB_ACTIONS' \
         #    --create-repo-if-missing
         # alternatively, using CLI scanner ...
-        run: |
-          ./cortexcli \
-            --api-base-url ${{ secrets.CORTEX_API_URL }} \
-            --api-key ${{ secrets.CORTEX_API_KEY }} \
-            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            code scan \
-            --directory ${{ github.workspace }} \
-            --repo-id ${{github.repository}} \
-            --branch ${{github.ref_name}} \
-            --source 'GITHUB_ACTIONS' \
-            --create-repo-if-missing
+        #run: |
+        #  ./cortexcli \
+        #    --api-base-url ${{ secrets.CORTEX_API_URL }} \
+        #    --api-key ${{ secrets.CORTEX_API_KEY }} \
+        #    --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+        #    code scan \
+        #    --directory ${{ github.workspace }} \
+        #    --repo-id ${{github.repository}} \
+        #    --branch ${{github.ref_name}} \
+        #    --source 'GITHUB_ACTIONS' \
+        #    --create-repo-if-missing
 
       # must save .tar ball for Cortex image scanner (!)
       - name: Build Image
@@ -122,28 +124,34 @@ jobs:
         #    --output-format json \
         #    --timeout 240
         # alternatively, use CLI scanner, must scan .tar archive, not image directly (1)
-        run: |
-          ./cortexcli \
-            --api-base-url ${{ secrets.CORTEX_API_URL }} \
-            --api-key ${{ secrets.CORTEX_API_KEY }} \
-            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            image scan ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
-            --ci-pipeline-id ${{ github.workflow }} \
-            --ci-build-id ${{ github.run_number }} \
-            --name ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
-            --output-format json \
-            --timeout 240 \
-            --log-level ERROR \
-            --upload-mode upload
-          
+        #run: |
+        #  ./cortexcli \
+        #    --api-base-url ${{ secrets.CORTEX_API_URL }} \
+        #    --api-key ${{ secrets.CORTEX_API_KEY }} \
+        #    --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+        #    image scan ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
+        #    --ci-pipeline-id ${{ github.workflow }} \
+        #    --ci-build-id ${{ github.run_number }} \
+        #    --name ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
+        #    --output-format json \
+        #    --timeout 240 \
+        #    --log-level ERROR \
+        #    --upload-mode upload
+        # using Uptycs CLI scanner
+        uses: uptycslabs/uptycs-action@main
+        with:
+          image: ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+          credentials: ${{ secrets.UPTYCS_CREDENTIALS }}  
+        
       - name: Archive Scan Results
         uses: actions/upload-artifact@v4
         with:
           name: image-scan-report
-          path: /tmp/${{ github.repository }}-${{ github.run_number }}-scan.json
+        #  path: /tmp/${{ github.repository }}-${{ github.run_number }}-scan.json
+          path: ./*_*.json
           retention-days: 20                                                # 90 is the default          
 
-      - name: Generate Image SBOM
+      # - name: Generate Image SBOM
         # run: echo "Image scanner currently not working as Docker image ..."
         #run: |
         #  docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${{ github.workspace }}:/home/code cortexcli:${{ env.CORTEX_CLI_VERSION }} \
@@ -154,22 +162,22 @@ jobs:
         #    --output-file /home/code/${{ github.repository }}.${{ github.run_number }}.sbom \
         #    --fields author, binaries, license, name, purl, sourcePackage, type, version
         # alternatively, use CLI scanner ...
-        run: |
-          ./cortexcli \
-            --api-base-url ${{ secrets.CORTEX_API_URL }} \
-            --api-key ${{ secrets.CORTEX_API_KEY }} \
-            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
-            --output-file /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json \
-            --fields author, binaries, license, name, purl, sourcePackage, type, version 
+        # run: |
+        #  ./cortexcli \
+        #    --api-base-url ${{ secrets.CORTEX_API_URL }} \
+        #    --api-key ${{ secrets.CORTEX_API_KEY }} \
+        #    --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+        #    image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+        #    --output-file /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json \
+        #    --fields author, binaries, license, name, purl, sourcePackage, type, version 
             # --log-level ERROR
 
-      - name: Archive Image SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-manifests
-          path: /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json
-          retention-days: 20                                                # 90 is the default
+      #- name: Archive Image SBOM
+        #uses: actions/upload-artifact@v4
+        #with:
+        #  name: sbom-manifests
+        #  path: /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json
+        #  retention-days: 20                                                # 90 is the default
 
       - id: auth
         uses: google-github-actions/auth@v2
