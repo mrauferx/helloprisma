@@ -141,7 +141,8 @@ jobs:
         uses: uptycslabs/uptycs-action@main
         with:
           image: ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
-          credentials: ${{ secrets.UPTYCS_CREDENTIALS }}  
+          credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
+          policy-name: mwm_ci_policy
         
       - name: Archive Scan Results
         uses: actions/upload-artifact@v4
