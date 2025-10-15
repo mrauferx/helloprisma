@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CORTEX_CLI_VERSION: 0.13.0
-      JAVA_HOME: JAVA_HOME_21_X64
+      JAVA_HOME: JAVA_HOME_11_X64
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
