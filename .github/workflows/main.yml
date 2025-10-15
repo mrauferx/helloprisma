@@ -161,8 +161,8 @@ jobs:
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
             --output-file /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json \
-            --fields author, binaries, license, name, purl, sourcePackage, type, version \
-            --log-level ERROR
+            --fields author, binaries, license, name, purl, sourcePackage, type, version 
+            # --log-level ERROR
 
       - name: Archive Image SBOM
         uses: actions/upload-artifact@v4
