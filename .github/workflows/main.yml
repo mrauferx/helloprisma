@@ -159,9 +159,10 @@ jobs:
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            image sbom ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+            image sbom \
             --output-file /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json \
-            --fields author, binaries, license, name, purl, sourcePackage, type, version 
+            --fields author, binaries, license, name, purl, sourcePackage, type, version \
+            ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
             # --log-level ERROR
 
       - name: Archive Image SBOM
