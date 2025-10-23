@@ -23,9 +23,9 @@ FROM node:18.10.0-alpine3.16
 #FROM node:23.10.0-alpine3.21
 
 # Arguments for use in image build
-#ARG USER=simple
-#ARG UID=1001
-#ARG GID=1001
+ARG USER=simple
+ARG UID=1001
+ARG GID=1001
 
 # create directory for application
 #RUN mkdir -p /app
@@ -34,8 +34,8 @@ FROM node:18.10.0-alpine3.16
 WORKDIR /app
 
 # using alpine
-#RUN addgroup --system --gid ${GID} ${USER} && \
-#    adduser ${USER} --system --uid ${UID} --ingroup ${USER}
+RUN addgroup --system --gid ${GID} ${USER} && \
+    adduser ${USER} --system --uid ${UID} --ingroup ${USER}
 # using Red Hat
 #RUN groupadd --system --gid ${GID} ${USER} && \
 #    useradd ${USER} --system --uid ${UID} --gid ${USER}
@@ -47,13 +47,13 @@ COPY --from=installer --chown=${USER} /app .
 # using Red Hat
 #RUN mkdir /home/${USER} && \
 #	chown ${USER} /home/${USER}
-#RUN	chown ${USER} /app
+RUN	chown ${USER} /app
 
 # Remove any setuid or setgid bits from files to avoid permission elevation
 RUN find / -xdev -perm /6000 -type f -exec chmod a-s {} \; || true
 
 # set run user to not run as root
-#USER ${UID}
+USER ${UID}
 
 # set a health check
 #HEALTHCHECK --interval=30s \
