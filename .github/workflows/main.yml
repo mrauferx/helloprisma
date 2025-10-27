@@ -140,6 +140,7 @@ jobs:
             #cat /tmp/cortexcli-*.log
             #--log-level ERROR \
             #--upload-mode upload \
+            docker images |grep ${{ github.repository }}
                       
       - name: Archive Scan Results
         uses: actions/upload-artifact@v4
