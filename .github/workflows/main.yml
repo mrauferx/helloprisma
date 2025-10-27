@@ -137,7 +137,7 @@ jobs:
             --output-format json \
             --timeout 240 \
             ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
-            cat /tmp/cortexcli-*.log
+            #cat /tmp/cortexcli-*.log
             #--log-level ERROR \
             #--upload-mode upload \
                       
@@ -165,8 +165,10 @@ jobs:
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             image sbom \
-            --output-file /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json \
+            --output-file /artifacts/${{ github.repository }}-${{ github.run_number }}-sbom.json \
             ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+            # threw error:
+            # open /tmp/mrauferx/helloprisma-41-sbom.json: no such file or directory - why?
             # threw error: 
             # invalid flag: fields, value: , must be one of (author, binaries, license, name, purl, sourcePackage, type, version)
             # doc says: Multiple fields can be specified. Values: author, binaries, license, name, purl, sourcePackage, type, version - how?
@@ -177,7 +179,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sbom-manifests
-          path: /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json
+          path: /artifacts/${{ github.repository }}-${{ github.run_number }}-sbom.json
           retention-days: 20                                                # 90 is the default
 
       - id: auth
