@@ -160,12 +160,12 @@ jobs:
         #    --fields author, binaries, license, name, purl, sourcePackage, type, version
         # alternatively, use CLI scanner ...
         run: |
-          ./cortexcli \
+          sudo ./cortexcli \
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             image sbom \
-            --output-file ${{ github.repository }}-${{ github.run_number }}-sbom.json \
+            --output-file ./artifacts/${{ github.repository }}-${{ github.run_number }}-sbom.json \
             ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
             # threw error:
             # open /tmp/mrauferx/helloprisma-41-sbom.json: no such file or directory - why?
