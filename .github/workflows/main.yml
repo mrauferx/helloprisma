@@ -160,14 +160,15 @@ jobs:
         #    --fields author, binaries, license, name, purl, sourcePackage, type, version
         # alternatively, use CLI scanner ...
         run: |
-          sudo ./cortexcli \
+          ./cortexcli \
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            image sbom \
-            --output-file ./artifacts/${{ github.repository }}-${{ github.run_number }}-sbom.json \
+            image sbom \            
             ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
             # threw error:
+            #--output-file ./artifacts/${{ github.repository }}-${{ github.run_number }}-sbom.json \
+            # works on CLI - why?
             # open /tmp/mrauferx/helloprisma-41-sbom.json: no such file or directory - why?
             # threw error: 
             # invalid flag: fields, value: , must be one of (author, binaries, license, name, purl, sourcePackage, type, version)
