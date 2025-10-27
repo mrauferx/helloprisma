@@ -127,14 +127,15 @@ jobs:
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            image scan ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
+            image scan \
             --ci-pipeline-id ${{ github.workflow }} \
             --ci-build-id ${{ github.run_number }} \
             --name ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
             --output-format json \
             --timeout 240 \
             --log-level ERROR \
-            --upload-mode upload
+            --upload-mode upload \
+            ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
           
       - name: Archive Scan Results
         uses: actions/upload-artifact@v4
