@@ -95,7 +95,9 @@ jobs:
         # run: docker build -t "quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }}" .
 
       - name: Test Image
-        run: echo "Tests passed."
+        run: |
+          docker images |grep ${{ github.repository }}
+          echo "Tests passed."
 
       # required for scanning images when using CLI scanner - doc says JDK 11 (!)
       #- name: Set up Java
@@ -133,10 +135,10 @@ jobs:
             --name ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }} \
             --output-format json \
             --timeout 240 \
-            --log-level ERROR \
-            --upload-mode upload \
             ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
-          
+            #--log-level ERROR \
+            #--upload-mode upload \
+                      
       - name: Archive Scan Results
         uses: actions/upload-artifact@v4
         with:

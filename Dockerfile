@@ -42,15 +42,15 @@ RUN addgroup --system --gid ${GID} ${USER} && \
 
 # copy built app into image
 COPY --from=installer --chown=root:root /app .
-RUN	chmod -R 755 /app
 
 ## see if this solves Error: EACCES: permission denied, mkdir '/home/simple' problem with npm
-# using Red Hat
+# using Red Hat (merge with below RUN commands to avoid maintainability issue in SonarQube
 #RUN mkdir /home/${USER} && \
 #	chown ${USER} /home/${USER}
 
-# Remove any setuid or setgid bits from files to avoid permission elevation
-RUN find / -xdev -perm /6000 -type f -exec chmod a-s {} \; || true
+# Set app dir permissions and remove any setuid or setgid bits from files to avoid permission elevation
+RUN	chmod -R 755 /app \
+&& find / -xdev -perm /6000 -type f -exec chmod a-s {} \; || true
 
 # set run user to not run as root
 USER ${UID}
