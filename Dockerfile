@@ -41,13 +41,13 @@ RUN addgroup --system --gid ${GID} ${USER} && \
 #    useradd ${USER} --system --uid ${UID} --gid ${USER}
 
 # copy built app into image
-COPY --from=installer --chown=${USER} /app .
+COPY --from=installer --chown=root:root /app .
+RUN	chmod -R 755 /app
 
 ## see if this solves Error: EACCES: permission denied, mkdir '/home/simple' problem with npm
 # using Red Hat
 #RUN mkdir /home/${USER} && \
 #	chown ${USER} /home/${USER}
-RUN	chown ${USER} /app
 
 # Remove any setuid or setgid bits from files to avoid permission elevation
 RUN find / -xdev -perm /6000 -type f -exec chmod a-s {} \; || true
