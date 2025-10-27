@@ -85,7 +85,8 @@ jobs:
             --repo-id ${{github.repository}} \
             --branch ${{github.ref_name}} \
             --source 'GITHUB_ACTIONS' \
-            --create-repo-if-missing
+            --create-repo-if-missing \
+            --upload-mode upload
 
       # must save .tar ball for Cortex image scanner (!)
       - name: Build Image
@@ -165,8 +166,11 @@ jobs:
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             image sbom \
             --output-file /tmp/${{ github.repository }}-${{ github.run_number }}-sbom.json \
-            --fields author, binaries, license, name, purl, sourcePackage, type, version \
             ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+            # threw error: 
+            # invalid flag: fields, value: , must be one of (author, binaries, license, name, purl, sourcePackage, type, version)
+            # doc says: Multiple fields can be specified. Values: author, binaries, license, name, purl, sourcePackage, type, version - how?
+            #--fields author, binaries, license, name, purl, sourcePackage, type, version \
             # --log-level ERROR
 
       - name: Archive Image SBOM
