@@ -167,7 +167,7 @@ jobs:
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             image sbom \
-            --output-file ./artifacts/${{ github.repository }}-${{ github.run_number }}-sbom.json \
+            --output-file ./artifacts/helloprisma-${{ github.run_number }}-sbom.json \
             ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
             # --log-level ERROR
 
