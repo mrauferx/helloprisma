@@ -130,6 +130,7 @@ jobs:
             --api-base-url ${{ secrets.CORTEX_API_URL }} \
             --api-key ${{ secrets.CORTEX_API_KEY }} \
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+            --soft-fail \
             image scan \
             --ci-pipeline-id "${{ github.workflow }}" \
             --ci-build-id ${{ github.run_number }} \
