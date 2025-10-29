@@ -175,7 +175,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sbom-manifests
-          path: ./artifacts/${{ github.repository }}-${{ github.run_number }}-sbom.json
+          path: ./artifacts/helloprisma-${{ github.run_number }}-sbom.json
           retention-days: 20                                                # 90 is the default
 
       - id: auth
