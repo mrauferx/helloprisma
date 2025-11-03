@@ -143,6 +143,7 @@ jobs:
           image: ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
           credentials: ${{ secrets.UPTYCS_CREDENTIALS }}
           policy-name: mwm_ci_policy
+          exit-on-error: true
         
       - name: Archive Scan Results
         uses: actions/upload-artifact@v4
