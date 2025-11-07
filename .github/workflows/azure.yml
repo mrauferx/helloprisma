@@ -14,7 +14,6 @@ jobs:
       id-token: write
 
     env:
-#      CORTEX_CLI_VERSION: 0.13.0
       JAVA_HOME: JAVA_HOME_11_X64
       IMAGE_NAME: ${{ github.repository }}
 
@@ -22,7 +21,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
       
-      # node is already installed in runner ...
+      # node.js required for code scan, already installed in runner ...
 
       # required if using Cortex CLI scanner - activate later, v0.14.0 not working properly ...
       #- name: Download cortexcli
@@ -50,20 +49,11 @@ jobs:
       #      --create-repo-if-missing \
       #      --upload-mode upload
 
-      # old build for GCP
-      #- name: Build Image
-      #  run: |
-      #    docker build -t "${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}" .
-          # docker save -o /tmp/image.tar ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
-        # run: docker build -t "quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }}" .
-
-      # new build for Azure
+      # prepare build for Azure - not needed, Docker works as-is (for now)
       #- name: Set up Docker Buildx
       #  uses: docker/setup-buildx-action@v3
 
-      ####################################################
-      # --- Set up versioning variables ---
-      ####################################################
+      # set up versioning variables to push multiple tags
       - name: Set image tags
         id: vars
         run: |
@@ -72,9 +62,7 @@ jobs:
           #echo "TAGS=latest ${GITHUB_RUN_NUMBER} $(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
           echo "TAGS=latest ${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
-      ####################################################
-      # --- Build Docker image once ---
-      ####################################################
+      # build Docker image once for both ACR and ECR
       - name: Build Docker image
         run: |
           docker build -t $IMAGE_NAME:latest .
@@ -84,7 +72,7 @@ jobs:
           docker images |grep ${{ github.repository }}
           echo "Tests passed."
 
-      # java is already installed in runner (referenced via JAVA_HOME) ...
+      # java required for image scan, already installed in runner (referenced via JAVA_HOME) ...
 
       # using Cortex CLI scanner - activate later, v0.14.0 not working properly ...
       #- name: Scan Image
@@ -131,14 +119,13 @@ jobs:
       #    path: ./artifacts/helloprisma-${{ github.run_number }}-sbom.json
       #    retention-days: 20                                                # 90 is the default
 
-      ####################################################
-      # --- Push to Azure Container Registry ---
-      ####################################################
+      # push to Azure Container Registry
+      # az login not needed for registry push, maybe later ...
       #- name: Log in to Azure
       #  uses: azure/login@v2
       #  with:
       #    creds: ${{ secrets.AZURE_CREDENTIALS }}
-      
+
       #    client-id: ${{ secrets.AZURE_CLIENT_ID }}
       #    tenant-id: ${{ secrets.AZURE_TENANT_ID }}
       #    subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -163,32 +150,15 @@ jobs:
             docker push $ACR_TAG
           done
 
-      ####################################################
-      # --- Display summary ---
-      ####################################################
+      # display summary, can be removed later ...
       - name: Show pushed image tags
         run: |
-          echo "✅ Image ${{ secrets.ACR_NAME }}.azurecr.io/$IMAGE_NAME pushed to Azure ACR and image t.b.d. pushed to AWS ECR (later) with tags:"
+          echo "✅ Image $IMAGE_NAME pushed to Azure ACR and to AWS ECR (later) with tags:"
           for TAG in $TAGS; do
             echo " - $TAG"
           done
 
-      # old image push to GAR
-      #- name: Push Image to Registry
-      #  env:
-      #    GCP_PROJECT: ${{ secrets.GCP_PROJECT }}                           # gcp project name 
-      #  run: |
-      #    gcloud auth configure-docker ${{ secrets.GAR_PREFIX }}
-      #    docker push ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
-      #  env:
-      #    QUAY_USER: ${{ secrets.QUAY_USER }}
-      #    QUAY_PW: ${{ secrets.QUAY_PW }}
-      #  run: echo "docker push quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }} ..."
-      #  run: |
-      #    docker login quay.io -u ${{ secrets.QUAY_USER }} -p ${{ secrets.QUAY_PW }}
-      #    docker push quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }}
-
-      #- name: Deploy Application to GKE
+      #- name: Deploy Application to AKS and EKS t.b.d.
       #  env:
       #    GCP_PROJECT: ${{ secrets.GCP_PROJECT }}                           # gcp project name 
        #   GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
