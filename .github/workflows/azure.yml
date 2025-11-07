@@ -25,30 +25,30 @@ jobs:
       # node is already installed in runner ...
 
       # required if using Cortex CLI scanner - activate later, v0.14.0 not working properly ...
-      - name: Download cortexcli
-        run: |
-          curl -s -o cortexcli $(curl -s "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64" \
-            -H "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" -H "Authorization: ${{ secrets.CORTEX_API_KEY }}" | jq -r ".signed_url")
-          chmod +x cortexcli
-          ./cortexcli --version
+      #- name: Download cortexcli
+      #  run: |
+      #    curl -s -o cortexcli $(curl -s "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64" \
+      #      -H "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" -H "Authorization: ${{ secrets.CORTEX_API_KEY }}" | jq -r ".signed_url")
+      #    chmod +x cortexcli
+      #    ./cortexcli --version
           # ls -la .cortexcli
           # sudo apt-get update
           # sudo apt-get install -y libhyperscan5
 
       # using Cortex CLI scanner - activate later, v0.14.0 not working properly ...
-      - name: Scan Code
-        run: |
-          ./cortexcli \
-            --api-base-url ${{ secrets.CORTEX_API_URL }} \
-            --api-key ${{ secrets.CORTEX_API_KEY }} \
-            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            code scan \
-            --directory ${{ github.workspace }} \
-            --repo-id ${{github.repository}} \
-            --branch ${{github.ref_name}} \
-            --source 'GITHUB_ACTIONS' \
-            --create-repo-if-missing \
-            --upload-mode upload
+      #- name: Scan Code
+      #  run: |
+      #    ./cortexcli \
+      #      --api-base-url ${{ secrets.CORTEX_API_URL }} \
+      #      --api-key ${{ secrets.CORTEX_API_KEY }} \
+      #      --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+      #      code scan \
+      #      --directory ${{ github.workspace }} \
+      #      --repo-id ${{github.repository}} \
+      #      --branch ${{github.ref_name}} \
+      #      --source 'GITHUB_ACTIONS' \
+      #      --create-repo-if-missing \
+      #      --upload-mode upload
 
       # old build for GCP
       #- name: Build Image
@@ -86,20 +86,20 @@ jobs:
       # java is already installed in runner (referenced via JAVA_HOME) ...
 
       # using Cortex CLI scanner - activate later, v0.14.0 not working properly ...
-      - name: Scan Image
-        run: |
-          ./cortexcli \
-            --api-base-url ${{ secrets.CORTEX_API_URL }} \
-            --api-key ${{ secrets.CORTEX_API_KEY }} \
-            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            --soft-fail \
-            image scan \
-            --ci-pipeline-id "${{ github.workflow }}" \
-            --ci-build-id ${{ github.run_number }} \
-            --name "$IMAGE_NAME:latest" \
-            --output-format json \
-            --timeout 240 \
-            $IMAGE_NAME:latest
+      #- name: Scan Image
+      #  run: |
+      #    ./cortexcli \
+      #      --api-base-url ${{ secrets.CORTEX_API_URL }} \
+      #      --api-key ${{ secrets.CORTEX_API_KEY }} \
+      #      --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+      #      --soft-fail \
+      #      image scan \
+      #      --ci-pipeline-id "${{ github.workflow }}" \
+      #      --ci-build-id ${{ github.run_number }} \
+      #      --name "$IMAGE_NAME:latest" \
+      #      --output-format json \
+      #      --timeout 240 \
+      #      $IMAGE_NAME:latest
             #cat /tmp/cortexcli-*.log
             #--log-level ERROR \
             #--upload-mode upload \
@@ -112,15 +112,15 @@ jobs:
       #    retention-days: 20                                                # 90 is the default          
 
       # using Cortex CLI scanner - activate later, v0.14.0 not working properly ...
-      - name: Generate Image SBOM
-        run: |
-          ./cortexcli \
-            --api-base-url ${{ secrets.CORTEX_API_URL }} \
-            --api-key ${{ secrets.CORTEX_API_KEY }} \
-            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
-            image sbom \
-            --output-file ./artifacts/helloprisma-${{ github.run_number }}-sbom.json \
-            $IMAGE_NAME:latest
+      #- name: Generate Image SBOM
+      #  run: |
+      #    ./cortexcli \
+      #      --api-base-url ${{ secrets.CORTEX_API_URL }} \
+      #      --api-key ${{ secrets.CORTEX_API_KEY }} \
+      #      --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+      #      image sbom \
+      #      --output-file ./artifacts/helloprisma-${{ github.run_number }}-sbom.json \
+      #      $IMAGE_NAME:latest
             # --log-level ERROR
 
       #- name: Archive Image SBOM
