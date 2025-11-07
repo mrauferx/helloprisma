@@ -1,0 +1,203 @@
+name: Build and Deploy to Azure
+on:
+#  push:
+#    branches:
+#      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+#      CORTEX_CLI_VERSION: 0.13.0
+      JAVA_HOME: JAVA_HOME_11_X64
+      IMAGE_NAME: ${{ github.repository }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      # node is already installed in runner ...
+
+      # required if using CLI scanner
+      - name: Download cortexcli
+        run: |
+          curl -s -o cortexcli $(curl -s "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64" \
+            -H "x-xdr-auth-id: ${{ secrets.CORTEX_API_KEY_ID }}" -H "Authorization: ${{ secrets.CORTEX_API_KEY }}" | jq -r ".signed_url")
+          chmod +x cortexcli
+          ./cortexcli --version
+          # ls -la .cortexcli
+          # sudo apt-get update
+          # sudo apt-get install -y libhyperscan5
+
+      - name: Scan Code
+        run: |
+          ./cortexcli \
+            --api-base-url ${{ secrets.CORTEX_API_URL }} \
+            --api-key ${{ secrets.CORTEX_API_KEY }} \
+            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+            code scan \
+            --directory ${{ github.workspace }} \
+            --repo-id ${{github.repository}} \
+            --branch ${{github.ref_name}} \
+            --source 'GITHUB_ACTIONS' \
+            --create-repo-if-missing \
+            --upload-mode upload
+
+      # old build for GCP
+      #- name: Build Image
+      #  run: |
+      #    docker build -t "${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}" .
+          # docker save -o /tmp/image.tar ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+        # run: docker build -t "quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }}" .
+
+      # new build for Azure
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      ####################################################
+      # --- Set up versioning variables ---
+      ####################################################
+      - name: Set image tags
+        id: vars
+        run: |
+          echo "BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+          echo "TAGS=latest ${GITHUB_RUN_NUMBER} $(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+
+      ####################################################
+      # --- Build Docker image once ---
+      ####################################################
+      - name: Build Docker image
+        run: |
+          docker build -t $IMAGE_NAME:latest .
+
+      - name: Test Image
+        run: |
+          docker images |grep ${{ github.repository }}
+          echo "Tests passed."
+
+      # java is already installed in runner (referenced via JAVA_HOME) ...
+
+      - name: Scan Image
+        run: |
+          ./cortexcli \
+            --api-base-url ${{ secrets.CORTEX_API_URL }} \
+            --api-key ${{ secrets.CORTEX_API_KEY }} \
+            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+            --soft-fail \
+            image scan \
+            --ci-pipeline-id "${{ github.workflow }}" \
+            --ci-build-id ${{ github.run_number }} \
+            --name "${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}" \
+            --output-format json \
+            --timeout 240 \
+            ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+            #cat /tmp/cortexcli-*.log
+            #--log-level ERROR \
+            #--upload-mode upload \
+            #docker images |grep ${{ github.repository }}
+                      
+      - name: Archive Scan Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-scan-report
+          path: /tmp/${{ github.repository }}-${{ github.run_number }}-scan.json
+          retention-days: 20                                                # 90 is the default          
+
+      - name: Generate Image SBOM
+        run: |
+          ./cortexcli \
+            --api-base-url ${{ secrets.CORTEX_API_URL }} \
+            --api-key ${{ secrets.CORTEX_API_KEY }} \
+            --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
+            image sbom \
+            --output-file ./artifacts/helloprisma-${{ github.run_number }}-sbom.json \
+            ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+            # --log-level ERROR
+
+      - name: Archive Image SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-manifests
+          path: ./artifacts/helloprisma-${{ github.run_number }}-sbom.json
+          retention-days: 20                                                # 90 is the default
+
+      ####################################################
+      # --- Push to Azure Container Registry ---
+      ####################################################
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      - name: Log in to Azure Container Registry
+        uses: azure/docker-login@v2
+        with:
+          login-server: ${{ secrets.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      # new image push to ACR
+      - name: Push image to ACR with all tags
+        run: |
+          for TAG in $TAGS; do
+            ACR_TAG=${{ secrets.ACR_NAME }}.azurecr.io/$IMAGE_NAME:$TAG
+            docker tag $IMAGE_NAME:latest $ACR_TAG
+            docker push $ACR_TAG
+          done
+
+      ####################################################
+      # --- Display summary ---
+      ####################################################
+      - name: Show pushed image tags
+        run: |
+          echo "✅ Image pushed to Azure ACR and AWS ECR (later) with tags:"
+          for TAG in $TAGS; do
+            echo " - $TAG"
+          done
+
+      # old image push to GAR
+      #- name: Push Image to Registry
+      #  env:
+      #    GCP_PROJECT: ${{ secrets.GCP_PROJECT }}                           # gcp project name 
+      #  run: |
+      #    gcloud auth configure-docker ${{ secrets.GAR_PREFIX }}
+      #    docker push ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+      #  env:
+      #    QUAY_USER: ${{ secrets.QUAY_USER }}
+      #    QUAY_PW: ${{ secrets.QUAY_PW }}
+      #  run: echo "docker push quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }} ..."
+      #  run: |
+      #    docker login quay.io -u ${{ secrets.QUAY_USER }} -p ${{ secrets.QUAY_PW }}
+      #    docker push quay.io/mmurhamm/${{ github.repository }}:${{ github.run_number }}
+
+      #- name: Deploy Application to GKE
+      #  env:
+      #    GCP_PROJECT: ${{ secrets.GCP_PROJECT }}                           # gcp project name 
+       #   GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+       #   QUAY_USER: ${{ secrets.QUAY_USER }}
+       #   QUAY_PW: ${{ secrets.QUAY_PW }}          
+      #  run: |
+      #    gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.GCP_PROJECT }}
+      #    # gcloud auth configure-docker ${{ secrets.GAR_PREFIX }}
+      #    helm upgrade \
+      #    ${{ github.event.repository.name }} \
+      #    helm \
+      #    --install \
+      #    --create-namespace \
+      #    --namespace ${{ github.event.repository.name }} \
+      #    --set image.repository=${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }} \
+      #    --set image.tag=${{ github.run_number }} \
+      #    --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
+       #   --set imageCredentials.username=${{ secrets.QUAY_USER }} \
+       #   --set imageCredentials.password=${{ secrets.QUAY_PW }} \
+       #   --set imageCredentials.repositoryUriPrefix=quay.io \
+       #   --set imageCredentials.registry=quay.io
