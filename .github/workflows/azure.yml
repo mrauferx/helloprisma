@@ -24,7 +24,7 @@ jobs:
       
       # node is already installed in runner ...
 
-      # required if using CLI scanner
+      # required if using Cortex CLI scanner - activate later, v0.14.0 not working properly ...
       - name: Download cortexcli
         run: |
           curl -s -o cortexcli $(curl -s "${{ secrets.CORTEX_API_URL }}/public_api/v1/unified-cli/releases/download-link?os=linux&architecture=amd64" \
@@ -35,6 +35,7 @@ jobs:
           # sudo apt-get update
           # sudo apt-get install -y libhyperscan5
 
+      # using Cortex CLI scanner - activate later, v0.14.0 not working properly ...
       - name: Scan Code
         run: |
           ./cortexcli \
@@ -84,6 +85,7 @@ jobs:
 
       # java is already installed in runner (referenced via JAVA_HOME) ...
 
+      # using Cortex CLI scanner - activate later, v0.14.0 not working properly ...
       - name: Scan Image
         run: |
           ./cortexcli \
@@ -94,22 +96,22 @@ jobs:
             image scan \
             --ci-pipeline-id "${{ github.workflow }}" \
             --ci-build-id ${{ github.run_number }} \
-            --name "${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}" \
+            --name "$IMAGE_NAME:latest" \
             --output-format json \
             --timeout 240 \
-            ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+            $IMAGE_NAME:latest
             #cat /tmp/cortexcli-*.log
             #--log-level ERROR \
             #--upload-mode upload \
-            #docker images |grep ${{ github.repository }}
                       
-      - name: Archive Scan Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: image-scan-report
-          path: /tmp/${{ github.repository }}-${{ github.run_number }}-scan.json
-          retention-days: 20                                                # 90 is the default          
+      #- name: Archive Scan Results
+      #  uses: actions/upload-artifact@v4
+      #  with:
+      #    name: image-scan-report
+      #    path: /tmp/${{ github.repository }}-${{ github.run_number }}-scan.json
+      #    retention-days: 20                                                # 90 is the default          
 
+      # using Cortex CLI scanner - activate later, v0.14.0 not working properly ...
       - name: Generate Image SBOM
         run: |
           ./cortexcli \
@@ -118,15 +120,15 @@ jobs:
             --api-key-id ${{ secrets.CORTEX_API_KEY_ID }} \
             image sbom \
             --output-file ./artifacts/helloprisma-${{ github.run_number }}-sbom.json \
-            ${{ secrets.GAR_PREFIX }}/${{ secrets.GCP_PROJECT }}/${{ github.repository }}:${{ github.run_number }}
+            $IMAGE_NAME:latest
             # --log-level ERROR
 
-      - name: Archive Image SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-manifests
-          path: ./artifacts/helloprisma-${{ github.run_number }}-sbom.json
-          retention-days: 20                                                # 90 is the default
+      #- name: Archive Image SBOM
+      #  uses: actions/upload-artifact@v4
+      #  with:
+      #    name: sbom-manifests
+      #    path: ./artifacts/helloprisma-${{ github.run_number }}-sbom.json
+      #    retention-days: 20                                                # 90 is the default
 
       ####################################################
       # --- Push to Azure Container Registry ---
