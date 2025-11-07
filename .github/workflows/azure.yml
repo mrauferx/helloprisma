@@ -68,8 +68,9 @@ jobs:
         id: vars
         run: |
           echo "BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-          echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
-          echo "TAGS=latest ${GITHUB_RUN_NUMBER} $(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+          #echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+          #echo "TAGS=latest ${GITHUB_RUN_NUMBER} $(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+          echo "TAGS=latest ${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
       ####################################################
       # --- Build Docker image once ---
@@ -133,10 +134,11 @@ jobs:
       ####################################################
       # --- Push to Azure Container Registry ---
       ####################################################
-      - name: Log in to Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      #- name: Log in to Azure
+      #  uses: azure/login@v2
+      #  with:
+      #    creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
       #    client-id: ${{ secrets.AZURE_CLIENT_ID }}
       #    tenant-id: ${{ secrets.AZURE_TENANT_ID }}
       #    subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -166,7 +168,7 @@ jobs:
       ####################################################
       - name: Show pushed image tags
         run: |
-          echo "✅ Image ${{ secrets.ACR_NAME }}.azurecr.io/$IMAGE_NAME pushed to Azure ACR and AWS ECR (later) with tags:"
+          echo "✅ Image ${{ secrets.ACR_NAME }}.azurecr.io/$IMAGE_NAME pushed to Azure ACR and image t.b.d. pushed to AWS ECR (later) with tags:"
           for TAG in $TAGS; do
             echo " - $TAG"
           done
