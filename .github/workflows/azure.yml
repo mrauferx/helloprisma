@@ -166,7 +166,7 @@ jobs:
       ####################################################
       - name: Show pushed image tags
         run: |
-          echo "✅ Image pushed to Azure ACR and AWS ECR (later) with tags:"
+          echo "✅ Image ${{ secrets.ACR_NAME }}.azurecr.io/$IMAGE_NAME pushed to Azure ACR and AWS ECR (later) with tags:"
           for TAG in $TAGS; do
             echo " - $TAG"
           done
