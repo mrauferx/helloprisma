@@ -163,7 +163,7 @@ jobs:
 
       - name: Get AKS credentials
         run: |
-          az aks get-credentials --resource-group ${{ secrets.AZURE_AKS_RESOURCE_GROUP }} --name ${{ secrets.AWS_EKS_CLUSTER_NAME }} --overwrite-existing
+          az aks get-credentials --resource-group ${{ secrets.AZURE_AKS_RESOURCE_GROUP }} --name ${{ secrets.AWS_AKS_CLUSTER_NAME }} --overwrite-existing
           az aks install-cli
 
       - name: Deploy Application to AKS
