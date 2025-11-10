@@ -148,35 +148,18 @@ jobs:
       #      echo " - $TAG"
       #    done
 
-      # login to AWS
-      #- name: Log in to Azure
-      #  uses: azure/login@v2
-      #  with:
-      #    creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Set up kubectl for EKS
+        run: |
+          aws eks update-kubeconfig --name ${{ secrets.AWS_EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
 
-#      - name: Set EKS context
-#        uses: azure/aks-set-context@v4
-#        with:
-#          resource-group: ${{ secrets.AZURE_AKS_RESOURCE_GROUP }}
-#          cluster-name: ${{ secrets.AZURE_AKS_CLUSTER_NAME }}
-
-#      - name: Set up Helm
-#        uses: azure/setup-helm@v4
-
-      #- name: Get EKS credentials
-      #  run: |
-      #    az aks get-credentials -g ${{ secrets.AZURE_AKS_RESOURCE_GROUP }} -n ${{ secrets.AZURE_AKS_CLUSTER_NAME }} --overwrite-existing
-      #    az aks install-cli
-      #    kubelogin convert-kubeconfig -l azurecli
-
-      #- name: Deploy Application to EKS
-      #  run: |
-      #    helm upgrade \
-      #    ${{ github.event.repository.name }} \
-      #    helm \
-      #    --install \
-      #    --create-namespace \
-      #    --namespace ${{ github.event.repository.name }} \
-      #    --set image.repository=${{ secrets.ACR_NAME }}.azurecr.io/$IMAGE_NAME \
-      #    --set image.tag=${{ github.run_number }} \
-      #    --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
+      - name: Deploy Application to EKS
+        run: |
+          helm upgrade \
+          ${{ github.event.repository.name }} \
+          helm \
+          --install \
+          --create-namespace \
+          --namespace ${{ github.event.repository.name }} \
+          --set image.repository=${{ secrets.ACR_NAME }}.azurecr.io/$IMAGE_NAME \
+          --set image.tag=${{ github.run_number }} \
+          --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
