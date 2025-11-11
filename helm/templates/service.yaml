@@ -4,6 +4,8 @@ metadata:
   name: {{ include "hellonode.name" . }}
   labels:
     {{- include "hellonode.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:

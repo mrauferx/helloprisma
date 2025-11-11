@@ -73,6 +73,8 @@ securityContext:
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
+  # Set service annotations for AWS LB where service control policy requires tagging, see: https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/service/annotations/#additional-resource-tags
+  annotations: {}
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: LoadBalancer 
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
