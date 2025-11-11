@@ -163,4 +163,5 @@ jobs:
           --namespace ${{ github.event.repository.name }} \
           --set image.repository=$ECR_URI/$IMAGE_NAME \
           --set image.tag=${{ github.run_number }} \
+          --set-string service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-additional-resource-tags"="Environment=Non-prod\,IdentifierCode=PANW-Demo-Lab\,Tenancy=Dedicated" \
           --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
