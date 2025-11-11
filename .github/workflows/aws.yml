@@ -154,12 +154,13 @@ jobs:
 
       - name: Deploy Application to EKS
         run: |
+          ECR_URI=${{ steps.login-ecr.outputs.registry }}
           helm upgrade \
           ${{ github.event.repository.name }} \
           helm \
           --install \
           --create-namespace \
           --namespace ${{ github.event.repository.name }} \
-          --set image.repository=${{ secrets.ACR_NAME }}.azurecr.io/$IMAGE_NAME \
+          --set image.repository=$ECR_URI/$IMAGE_NAME \
           --set image.tag=${{ github.run_number }} \
           --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
