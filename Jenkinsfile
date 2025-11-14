@@ -1,11 +1,7 @@
 node {
     // ----- Configuration -----
-    def IMAGE_NAME = "mrauferx/helloprisma"      // env github repo ?
+    def IMAGE_NAME = "mrauferx/helloprisma"
     def IMAGE_TAG = "${env.BUILD_NUMBER}"
-    // def ACR_NAME = ""                         // secret
-    // def AKS_RESOURCE_GROUP = ""               // secret
-    // def AKS_CLUSTER_NAME = ""                 // secret
-    // def AZURE_SUBSCRIPTION_ID = ""            // secret
     def HELM_RELEASE_NAME = "helloprisma"
     def HELM_CHART_PATH = "helm"
 
@@ -20,18 +16,16 @@ node {
             env.ACR_LONG_NAME = ACR_LONG_NAME
             env.AKS_RESOURCE_GROUP = AKS_RESOURCE_GROUP
             env.AKS_CLUSTER_NAME = AKS_CLUSTER_NAME
-    //        echo "Init completed"
         }
     }
-
-    // If you use Jenkins credentials plugin:
-    // def azureCreds = credentials('AZURE_CREDENTIALS') // client_id + client_secret + tenant_id + subscription_id
-    // def AZURE_TENANT_ID = env.AZURE_TENANT_ID         // stored as global env var
 
     try {
         stage('Checkout') {
             checkout scm
         }
+
+        // --- PLACEHOLDER: Palo Alto Cortex Scan ---
+        // You can insert your scan stage here.
 
         stage('Azure Login') {
             withCredentials([
@@ -49,24 +43,6 @@ node {
                 '''
             }
         }
-
-    //        echo "Logging into Azure..."
-    //        withEnv([
-    //            "AZURE_CLIENT_ID=${azureCreds_usr}",
-    //            "AZURE_CLIENT_SECRET=${azureCreds_psw}",
-    //            "AZURE_TENANT_ID=${azureCreds_ten}",
-    //            "AZURE_SUBSCRIPTION_ID=${azureCreds_sub}"
-    //        ]) {
-    //            sh '''
-    //                az login --service-principal \
-    //                  -u $AZURE_CLIENT_ID \
-    //                  -p $AZURE_CLIENT_SECRET \
-    //                  --tenant $AZURE_TENANT_ID
-
-    //                az account show
-    //                env
-    //            '''
-    //        }
 
         stage('Build Docker Image') {
             echo "Building Docker image..."
@@ -97,27 +73,6 @@ node {
             }
         }
 
-        //stage('Deploy to AKS') {
-        //    echo "Deploying to AKS via Helm..."
-        //    sh '''
-        //        az aks get-credentials --resource-group $AKS_RESOURCE_GROUP \
-        //                               --name $AKS_CLUSTER_NAME \
-        //                               --overwrite-existing
-
-        //        # may be required to get kubelogin
-        //        #az aks install-cli
-        //        #kubelogin convert-kubeconfig -l azurecli
-
-        //        helm upgrade --install ${HELM_RELEASE_NAME} ${HELM_CHART_PATH} \
-        //            --set image.repository=$ACR_NAME.azurecr.io/${IMAGE_NAME} \
-        //            --set image.tag=${IMAGE_TAG} \
-        //            --create-namespace \
-        //            --namespace ${HELM_RELEASE_NAME} \
-        //            --set imageCredentials.create=false
-        //            #--set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
-        //    '''
-        //}
-
         stage('Deploy to AKS') {
             echo "Deploying to AKS via Helm..."
             sh """
@@ -128,11 +83,12 @@ node {
                 kubelogin convert-kubeconfig -l azurecli
         
                 helm upgrade --install "${HELM_RELEASE_NAME}" "${HELM_CHART_PATH}" \\
-                    --set image.repository=${ACR_LONG_NAME}.azurecr.io/"${IMAGE_NAME}" \\
-                    --set image.tag="${IMAGE_TAG}" \\
                     --create-namespace \\
                     --namespace "${HELM_RELEASE_NAME}" \\
-                    --set imageCredentials.create=false
+                    --set image.repository=${ACR_LONG_NAME}.azurecr.io/"${IMAGE_NAME}" \\
+                    --set image.tag="${IMAGE_TAG}" \\
+                    --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
+                    #--set imageCredentials.create=false
             """
         }
 
