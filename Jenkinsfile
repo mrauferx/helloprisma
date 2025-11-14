@@ -91,7 +91,8 @@ node {
                     docker login ${ACR_LONG_NAME}.azurecr.io -u ${CLIENT_ID} -p ${CLIENT_SECRET}
                     #az acr login --name ${ACR_LONG_NAME}.azurecr.io
                     docker push ${ACR_LONG_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}
-            """
+                """
+            }
         }
 
         //stage('Deploy to AKS') {
