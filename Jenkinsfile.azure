@@ -88,7 +88,7 @@ node {
 
         stage('Deploy to AKS') {
             echo "Deploying to AKS via Helm..."
-            sh """
+            sh '''
                 az aks get-credentials --resource-group $AKS_RESOURCE_GROUP \
                                        --name $AKS_CLUSTER_NAME \
                                        --overwrite-existing
@@ -101,10 +101,10 @@ node {
                     --set image.repository=$ACR_NAME.azurecr.io/${IMAGE_NAME} \
                     --set image.tag=${IMAGE_TAG}
                     --create-namespace \
-                    --namespace $HELM_RELEASE_NAME \
+                    --namespace ${HELM_RELEASE_NAME} \
                     --set imageCredentials.create=false
                     #--set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
-            """
+            '''
         }
 
     } catch (err) {
