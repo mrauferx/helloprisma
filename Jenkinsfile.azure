@@ -14,9 +14,9 @@ node {
     //        usernamePassword(credentialsId: 'registry-creds',
     //            usernameVariable: 'REG_USER_TMP',
     //            passwordVariable: 'REG_PASS_TMP'),
-            secretText(credentialsId: 'ACR_NAME'),
-            secretText(credentialsId: 'AKS_RESOURCE_GROUP'),
-            secretText(credentialsId: 'AKS_CLUSTER_NAME')
+            string(credentialsId: 'ACR_NAME'),
+            string(credentialsId: 'AKS_RESOURCE_GROUP'),
+            string(credentialsId: 'AKS_CLUSTER_NAME')
         ]) {
             env.ACR_NAME = ACR_NAME
             env.AKS_RESOURCE_GROUP = AKS_RESOURCE_GROUP
