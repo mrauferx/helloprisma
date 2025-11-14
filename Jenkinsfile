@@ -109,7 +109,7 @@ node {
 
         stage('Deploy to AKS') {
             echo "Deploying to AKS via Helm..."
-            sh '''
+            sh """
                 az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --overwrite-existing
         
                 helm upgrade --install "${HELM_RELEASE_NAME}" "${HELM_CHART_PATH}" \ 
@@ -118,7 +118,7 @@ node {
                     --create-namespace \ 
                     --namespace "${HELM_RELEASE_NAME}" \ 
                     --set imageCredentials.create=false
-            '''
+            """
         }
 
     } catch (err) {
