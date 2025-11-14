@@ -40,7 +40,7 @@ node {
                                     tenantIdVariable: 'TENANT_ID')
             ]) {
                 sh '''
-                    az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET -t $TENANT_ID'
+                    az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET -t $TENANT_ID
                     az account show
                     env
                 '''
@@ -109,11 +109,11 @@ node {
             sh """
                 az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --overwrite-existing
         
-                helm upgrade --install "${HELM_RELEASE_NAME}" "${HELM_CHART_PATH}" \\ 
-                    --set image.repository=$ACR_NAME.azurecr.io/"${IMAGE_NAME}" \\ 
-                    --set image.tag="${IMAGE_TAG}" \\ 
-                    --create-namespace \\ 
-                    --namespace "${HELM_RELEASE_NAME}" \\ 
+                helm upgrade --install "${HELM_RELEASE_NAME}" "${HELM_CHART_PATH}" \\
+                    --set image.repository=$ACR_NAME.azurecr.io/"${IMAGE_NAME}" \\
+                    --set image.tag="${IMAGE_TAG}" \\
+                    --create-namespace \\
+                    --namespace "${HELM_RELEASE_NAME}" \\
                     --set imageCredentials.create=false
             """
         }
