@@ -177,4 +177,5 @@ jobs:
           --namespace ${{ github.event.repository.name }} \
           --set image.repository=${{ secrets.ACR_NAME }}.azurecr.io/$IMAGE_NAME \
           --set image.tag=${{ github.run_number }} \
-          --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
+          --set imageCredentials.create=false
+          #--set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"

@@ -1,0 +1,86 @@
+node {
+    // ----- Configuration -----
+    def IMAGE_NAME = "myapp"
+    def IMAGE_TAG = "${env.BUILD_NUMBER}"
+    def AWS_REGION = "us-east-1"
+    def ECR_REPO = "my-ecr-repo" // e.g. "my-ecr-repo"
+    def ECR_REGISTRY = ""         // we'll dynamically set this after login
+    def EKS_CLUSTER_NAME = "myEKSCluster"
+    def HELM_RELEASE_NAME = "myapp-release"
+    def HELM_CHART_PATH = "./helm/myapp"
+
+    // Jenkins credentials for AWS (use AWS access key / secret key pair)
+    def awsCreds = credentials('AWS_CREDENTIALS') // typical type: AWS credentials
+
+    try {
+        stage('Checkout') {
+            checkout scm
+        }
+
+        stage('AWS Login & ECR Auth') {
+            echo "Logging into AWS and ECR..."
+            withEnv([
+                "AWS_ACCESS_KEY_ID=${awsCreds_usr}",
+                "AWS_SECRET_ACCESS_KEY=${awsCreds_psw}",
+                "AWS_DEFAULT_REGION=${AWS_REGION}"
+            ]) {
+                sh '''
+                    aws sts get-caller-identity
+                    ECR_REGISTRY=$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+                    echo "ECR_REGISTRY=$ECR_REGISTRY" >> ecr_registry.txt
+
+                    aws ecr get-login-password --region $AWS_DEFAULT_REGION | \
+                      docker login --username AWS --password-stdin $ECR_REGISTRY
+                '''
+            }
+            // capture registry URL for later stages
+            ECR_REGISTRY = sh(script: "cat ecr_registry.txt", returnStdout: true).trim()
+        }
+
+        stage('Build Docker Image') {
+            echo "Building Docker image..."
+            sh """
+                docker build -t ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG} .
+            """
+        }
+
+        // --- PLACEHOLDER: Palo Alto Cortex Scan ---
+        // You can insert your scan stage here.
+
+        stage('Push to ECR') {
+            echo "Pushing image to Amazon ECR..."
+            sh """
+                docker push ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
+            """
+        }
+
+        stage('Deploy to EKS') {
+            echo "Deploying to EKS via Helm..."
+            withEnv([
+                "AWS_ACCESS_KEY_ID=${awsCreds_usr}",
+                "AWS_SECRET_ACCESS_KEY=${awsCreds_psw}",
+                "AWS_DEFAULT_REGION=${AWS_REGION}"
+            ]) {
+                sh """
+                    aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
+
+                    helm upgrade --install ${HELM_RELEASE_NAME} ${HELM_CHART_PATH} \
+                        --set image.repository=${ECR_REGISTRY}/${ECR_REPO} \
+                        --set image.tag=${IMAGE_TAG}
+                """
+            }
+        }
+
+    } catch (err) {
+        echo "❌ Pipeline failed: ${err}"
+        currentBuild.result = 'FAILURE'
+        throw err
+    } finally {
+        stage('Cleanup') {
+            echo "Cleaning up Docker images..."
+            sh 'docker system prune -f || true'
+        }
+    }
+
+    echo "✅ Deployment completed successfully!"
+}

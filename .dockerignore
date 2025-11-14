@@ -4,6 +4,8 @@ Dockerfile.good
 hellonode.yaml
 Jenkinsfile
 Jenkinsfile.org
+Jenkinsfile.azure
+Jenkinsfile.aws
 README.md
 .sonarcloud.properties
 .git
