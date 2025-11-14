@@ -12,10 +12,12 @@ node {
     stage('Init') {
         withCredentials([
             string(credentialsId: 'ACR_NAME', variable: 'ACR_NAME'),
+            string(credentialsId: 'ACR_LONG_NAME', variable: 'ACR_LONG_NAME'),
             string(credentialsId: 'AKS_RESOURCE_GROUP', variable: 'AKS_RESOURCE_GROUP'),
             string(credentialsId: 'AKS_CLUSTER_NAME', variable: 'AKS_CLUSTER_NAME')
         ]) {
             env.ACR_NAME = ACR_NAME
+            env.ACR_LONG_NAME = ACR_LONG_NAME
             env.AKS_RESOURCE_GROUP = AKS_RESOURCE_GROUP
             env.AKS_CLUSTER_NAME = AKS_CLUSTER_NAME
     //        echo "Init completed"
@@ -68,7 +70,7 @@ node {
         stage('Build Docker Image') {
             echo "Building Docker image..."
             sh """
-                docker build -t ${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG} .
+                docker build -t ${ACR_LONG_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG} .
             """
         }
 
@@ -79,7 +81,7 @@ node {
             echo "Pushing image to Azure Container Registry..."
             sh """
                 az acr login --name ${ACR_NAME}
-                docker push ${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}
+                docker push ${ACR_LONG_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}
             """
         }
 
@@ -110,7 +112,7 @@ node {
                 az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --overwrite-existing
         
                 helm upgrade --install "${HELM_RELEASE_NAME}" "${HELM_CHART_PATH}" \\
-                    --set image.repository=${ACR_NAME}.azurecr.io/"${IMAGE_NAME}" \\
+                    --set image.repository=${ACR_LONG_NAME}.azurecr.io/"${IMAGE_NAME}" \\
                     --set image.tag="${IMAGE_TAG}" \\
                     --create-namespace \\
                     --namespace "${HELM_RELEASE_NAME}" \\
