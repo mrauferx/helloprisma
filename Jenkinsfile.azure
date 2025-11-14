@@ -116,7 +116,7 @@ node {
                     --set image.repository=$ACR_NAME.azurecr.io/${IMAGE_NAME} \ 
                     --set image.tag=${IMAGE_TAG} \ 
                     --create-namespace \ 
-                    --namespace "${HELM_RELEASE_NAME}" \ 
+                    --namespace ${HELM_RELEASE_NAME} \ 
                     --set imageCredentials.create=false
             '''
         }
