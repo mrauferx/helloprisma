@@ -81,14 +81,15 @@ node {
                 # may be required to get kubelogin
                 az aks install-cli
                 kubelogin convert-kubeconfig -l azurecli
-        
+                dockerConfigJson="$(cat ~/.docker/config.json | base64 -w 0)"
+            ''' + """
                 helm upgrade --install ${HELM_RELEASE_NAME} ${HELM_CHART_PATH} \
                     --create-namespace \
                     --namespace ${HELM_RELEASE_NAME} \
                     --set image.repository=$ACR_LONG_NAME.azurecr.io/${IMAGE_NAME} \
                     --set image.tag=${IMAGE_TAG} \
-                    --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
-            '''
+                    --set dockerConfigJson.data=$dockerConfigJson
+            """
         }
 
     } catch (err) {
