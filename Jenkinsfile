@@ -43,7 +43,7 @@ node {
             ]) {
                 sh '''
                     az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET -t $TENANT_ID
-                    az account set --subscription $SUBS_ID
+                    #az account set --subscription $SUBS_ID
                     #az account show
                     #env
                 '''
@@ -80,10 +80,11 @@ node {
 
         stage('Push to ACR') {
             echo "Pushing image to Azure Container Registry..."
-            sh """
-                az acr login --name ${ACR_LONG_NAME}.azurecr.io
+            sh '''
+                docker login ${ACR_LONG_NAME}.azurecr.io -u $CLIENT_ID -p $CLIENT_SECRET
+                #az acr login --name ${ACR_LONG_NAME}.azurecr.io
                 docker push ${ACR_LONG_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}
-            """
+            '''
         }
 
         //stage('Deploy to AKS') {
