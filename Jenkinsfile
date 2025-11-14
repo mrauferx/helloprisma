@@ -41,8 +41,8 @@ node {
             ]) {
                 sh '''
                     az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET -t $TENANT_ID
-                    az account show
-                    env
+                    #az account show
+                    #env
                 '''
             }
         }
@@ -68,7 +68,7 @@ node {
         stage('Build Docker Image') {
             echo "Building Docker image..."
             sh """
-                docker build -t $ACR_NAME.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG} .
+                docker build -t ${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG} .
             """
         }
 
@@ -79,7 +79,7 @@ node {
             echo "Pushing image to Azure Container Registry..."
             sh """
                 az acr login --name $ACR_NAME
-                docker push $ACR_NAME.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}
+                docker push ${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}
             """
         }
 
@@ -110,7 +110,7 @@ node {
                 az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --overwrite-existing
         
                 helm upgrade --install "${HELM_RELEASE_NAME}" "${HELM_CHART_PATH}" \\
-                    --set image.repository=$ACR_NAME.azurecr.io/"${IMAGE_NAME}" \\
+                    --set image.repository=${ACR_NAME}.azurecr.io/"${IMAGE_NAME}" \\
                     --set image.tag="${IMAGE_TAG}" \\
                     --create-namespace \\
                     --namespace "${HELM_RELEASE_NAME}" \\
