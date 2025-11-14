@@ -15,10 +15,10 @@ node {
             string(credentialsId: 'AKS_RESOURCE_GROUP', variable: 'AKS_RESOURCE_GROUP'),
             string(credentialsId: 'AKS_CLUSTER_NAME', variable: 'AKS_CLUSTER_NAME')
         ]) {
-    //        env.ACR_NAME = ACR_NAME
-    //        env.AKS_RESOURCE_GROUP = AKS_RESOURCE_GROUP
-    //        env.AKS_CLUSTER_NAME = AKS_CLUSTER_NAME
-            echo "Init completed"
+            env.ACR_NAME = ACR_NAME
+            env.AKS_RESOURCE_GROUP = AKS_RESOURCE_GROUP
+            env.AKS_CLUSTER_NAME = AKS_CLUSTER_NAME
+    //        echo "Init completed"
         }
     }
 
