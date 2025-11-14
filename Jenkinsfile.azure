@@ -32,6 +32,21 @@ node {
         }
 
         stage('Azure Login') {
+            withCredentials([
+                azureServicePrincipal(credentialsId: 'AZURE_CREDENTIALS',
+                                    subscriptionIdVariable: 'SUBS_ID',
+                                    clientIdVariable: 'CLIENT_ID',
+                                    clientSecretVariable: 'CLIENT_SECRET',
+                                    tenantIdVariable: 'TENANT_ID')
+            ]) {
+                sh '''
+                    az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET -t $TENANT_ID'
+                    az account show
+                    env
+                '''
+            }
+        }
+
     //        echo "Logging into Azure..."
     //        withEnv([
     //            "AZURE_CLIENT_ID=${azureCreds_usr}",
@@ -49,20 +64,6 @@ node {
     //                env
     //            '''
     //        }
-            withCredentials([
-                azureServicePrincipal(credentialsId: 'AZURE_CREDENTIALS',
-                                    subscriptionIdVariable: 'SUBS_ID',
-                                    clientIdVariable: 'CLIENT_ID',
-                                    clientSecretVariable: 'CLIENT_SECRET',
-                                    tenantIdVariable: 'TENANT_ID')
-            ]) {
-                sh '''
-                    az login --service-principal -u $CLIENT_ID -p $CLIENT_SECRET -t $TENANT_ID'
-                    az account show
-                    env
-                '''
-            }
-        }
 
         stage('Build Docker Image') {
             echo "Building Docker image..."
