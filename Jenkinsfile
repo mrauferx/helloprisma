@@ -87,7 +87,7 @@ node {
                     --namespace "${HELM_RELEASE_NAME}" \\
                     --set image.repository=${ACR_LONG_NAME}.azurecr.io/$IMAGE_NAME \\
                     --set image.tag=$IMAGE_TAG \\ 
-                    --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
+                    --set dockerConfigJson.data='$(cat ~/.docker/config.json | base64 -w 0)'
             """
         }
 
