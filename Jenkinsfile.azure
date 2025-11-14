@@ -79,11 +79,18 @@ node {
         // You can insert your scan stage here.
 
         stage('Push to ACR') {
-            echo "Pushing image to Azure Container Registry..."
-            sh """
-                docker login ${ACR_LONG_NAME}.azurecr.io -u ${CLIENT_ID} -p ${CLIENT_SECRET}
-                #az acr login --name ${ACR_LONG_NAME}.azurecr.io
-                docker push ${ACR_LONG_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}
+            withCredentials([
+                azureServicePrincipal(credentialsId: 'AZURE_CREDENTIALS',
+                                    subscriptionIdVariable: 'SUBS_ID',
+                                    clientIdVariable: 'CLIENT_ID',
+                                    clientSecretVariable: 'CLIENT_SECRET',
+                                    tenantIdVariable: 'TENANT_ID')
+            ]) {
+                echo "Pushing image to Azure Container Registry..."
+                sh """
+                    docker login ${ACR_LONG_NAME}.azurecr.io -u ${CLIENT_ID} -p ${CLIENT_SECRET}
+                    #az acr login --name ${ACR_LONG_NAME}.azurecr.io
+                    docker push ${ACR_LONG_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}
             """
         }
 
