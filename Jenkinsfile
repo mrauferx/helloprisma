@@ -16,15 +16,13 @@ node {
     //            passwordVariable: 'REG_PASS_TMP'),
             secretText(credentialsId: 'ACR_NAME'),
             secretText(credentialsId: 'AKS_RESOURCE_GROUP'),
-            secretText(credentialsId: 'AKS_CLUSTER_NAME'),
-
+            secretText(credentialsId: 'AKS_CLUSTER_NAME')
         ]) {
             env.ACR_NAME = ACR_NAME
             env.AKS_RESOURCE_GROUP = AKS_RESOURCE_GROUP
             env.AKS_CLUSTER_NAME = AKS_CLUSTER_NAME
         }
     }
-
 
     // If you use Jenkins credentials plugin:
     // def azureCreds = credentials('AZURE_CREDENTIALS') // client_id + client_secret + tenant_id + subscription_id
