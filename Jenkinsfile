@@ -78,7 +78,7 @@ node {
         stage('Push to ACR') {
             echo "Pushing image to Azure Container Registry..."
             sh """
-                az acr login --name $ACR_NAME
+                az acr login --name ${ACR_NAME}.azurecr.io
                 docker push ${ACR_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}
             """
         }
