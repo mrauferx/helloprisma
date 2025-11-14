@@ -75,20 +75,20 @@ node {
 
         stage('Deploy to AKS') {
             echo "Deploying to AKS via Helm..."
-            sh """
+            sh '''
                 az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --overwrite-existing
 
                 # may be required to get kubelogin
                 az aks install-cli
                 kubelogin convert-kubeconfig -l azurecli
         
-                helm upgrade --install "${HELM_RELEASE_NAME}" "${HELM_CHART_PATH}" \
+                helm upgrade --install $HELM_RELEASE_NAME $HELM_CHART_PATH \
                     --create-namespace \
-                    --namespace "${HELM_RELEASE_NAME}" \
-                    --set image.repository=${ACR_LONG_NAME}.azurecr.io/$IMAGE_NAME \
+                    --namespace $HELM_RELEASE_NAME \
+                    --set image.repository=$ACR_LONG_NAME.azurecr.io/$IMAGE_NAME \
                     --set image.tag=$IMAGE_TAG \
-                    --set dockerConfigJson.data=\"$(cat ~/.docker/config.json | base64 -w 0)\"
-            """
+                    --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
+            '''
         }
 
     } catch (err) {
