@@ -72,6 +72,7 @@ node {
             echo "Building Docker image..."
             sh """
                 docker build -t ${ACR_LONG_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG} .
+                docker tag ${ACR_LONG_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG} ${ACR_LONG_NAME}.azurecr.io/${IMAGE_NAME}:latest
             """
         }
 
@@ -91,6 +92,7 @@ node {
                     docker login ${ACR_LONG_NAME}.azurecr.io -u ${CLIENT_ID} -p ${CLIENT_SECRET}
                     #az acr login --name ${ACR_LONG_NAME}.azurecr.io
                     docker push ${ACR_LONG_NAME}.azurecr.io/${IMAGE_NAME}:${IMAGE_TAG}
+                    docker push ${ACR_LONG_NAME}.azurecr.io/${IMAGE_NAME}:latest
                 """
             }
         }
@@ -120,6 +122,10 @@ node {
             echo "Deploying to AKS via Helm..."
             sh """
                 az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --overwrite-existing
+
+                # may be required to get kubelogin
+                az aks install-cli
+                kubelogin convert-kubeconfig -l azurecli
         
                 helm upgrade --install "${HELM_RELEASE_NAME}" "${HELM_CHART_PATH}" \\
                     --set image.repository=${ACR_LONG_NAME}.azurecr.io/"${IMAGE_NAME}" \\
