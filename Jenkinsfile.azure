@@ -112,11 +112,11 @@ node {
             sh '''
                 az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --overwrite-existing
         
-                helm upgrade --install ${HELM_RELEASE_NAME} ${HELM_CHART_PATH} \ 
-                    --set image.repository=$ACR_NAME.azurecr.io/${IMAGE_NAME} \ 
-                    --set image.tag=${IMAGE_TAG} \ 
+                helm upgrade --install "${HELM_RELEASE_NAME}" "${HELM_CHART_PATH}" \ 
+                    --set image.repository=$ACR_NAME.azurecr.io/"${IMAGE_NAME}" \ 
+                    --set image.tag="${IMAGE_TAG}" \ 
                     --create-namespace \ 
-                    --namespace ${HELM_RELEASE_NAME} \ 
+                    --namespace "${HELM_RELEASE_NAME}" \ 
                     --set imageCredentials.create=false
             '''
         }
