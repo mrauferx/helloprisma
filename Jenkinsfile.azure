@@ -99,7 +99,7 @@ node {
 
                 helm upgrade --install ${HELM_RELEASE_NAME} ${HELM_CHART_PATH} \
                     --set image.repository=$ACR_NAME.azurecr.io/${IMAGE_NAME} \
-                    --set image.tag=${IMAGE_TAG}
+                    --set image.tag=${IMAGE_TAG} \
                     --create-namespace \
                     --namespace ${HELM_RELEASE_NAME} \
                     --set imageCredentials.create=false
