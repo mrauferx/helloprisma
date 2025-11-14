@@ -81,8 +81,19 @@ node {
                 # may be required to get kubelogin
                 az aks install-cli
                 kubelogin convert-kubeconfig -l azurecli
-                dockerConfigJson="$(cat ~/.docker/config.json | base64 -w 0)"
-            ''' + """
+            '''
+
+            def dockerConfigJson = sh(
+                script: '''
+                    az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --overwrite-existing
+                    az aks install-cli
+                    kubelogin convert-kubeconfig -l azurecli
+                    cat ~/.docker/config.json | base64 -w 0
+                ''',
+                returnStdout: true
+            ).trim()
+
+            sh """
                 helm upgrade --install ${HELM_RELEASE_NAME} ${HELM_CHART_PATH} \
                     --create-namespace \
                     --namespace ${HELM_RELEASE_NAME} \
