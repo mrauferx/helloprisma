@@ -82,11 +82,11 @@ node {
                 az aks install-cli
                 kubelogin convert-kubeconfig -l azurecli
         
-                helm upgrade --install $HELM_RELEASE_NAME $HELM_CHART_PATH \
+                helm upgrade --install ${HELM_RELEASE_NAME} ${HELM_CHART_PATH} \
                     --create-namespace \
-                    --namespace $HELM_RELEASE_NAME \
-                    --set image.repository=$ACR_LONG_NAME.azurecr.io/$IMAGE_NAME \
-                    --set image.tag=$IMAGE_TAG \
+                    --namespace ${HELM_RELEASE_NAME} \
+                    --set image.repository=$ACR_LONG_NAME.azurecr.io/${IMAGE_NAME} \
+                    --set image.tag=${IMAGE_TAG} \
                     --set dockerConfigJson.data="$(cat ~/.docker/config.json | base64 -w 0)"
             '''
         }
